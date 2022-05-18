@@ -1,0 +1,31 @@
+
+.toolButton{
+    border-radius: 24px;
+    border:none;
+}
+
+#dropzone {
+    height: 200px;
+    width: 200px;
+    border: 2px dotted black
+}
+
+.rectangle {
+    border: 2px dotted black;
+    position: absolute;
+}
+
+.label_inputs {
+    width: 75%
+}
+
+.stat_division {
+    display: flex;
+    flex-direction: column;
+}
+input[type='file'] {
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    opacity: 0;
+  }

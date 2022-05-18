@@ -1,0 +1,49 @@
+/* set up different styles for each context theme */
+
+/* #container::-webkit-scrollbar-button:vertical:increment {
+    background-color: red;
+} */
+.menu-containerpink{
+    scrollbar-color:#FFC3F5 rgb(237, 225, 243);
+    scrollbar-width:thin;
+}
+.menu-containerpink::-webkit-scrollbar {
+    width: 10px;
+}
+.menu-containerpink::-webkit-scrollbar-track {
+    background: rgb(237, 225, 243);  
+}
+.menu-containerpink::-webkit-scrollbar-thumb {
+    background: #FFC3F5;
+    border-radius: 8px;
+}
+
+.menu-containerdark{
+    scrollbar-color:#ffffff #454545 ;
+    scrollbar-width:thin;
+}
+.menu-containerdark::-webkit-scrollbar {
+    width: 10px;
+}
+.menu-containerdark::-webkit-scrollbar-track {
+    background: #454545;
+}
+.menu-containerdark::-webkit-scrollbar-thumb {
+    background: #ffffff;
+    border-radius: 8px;
+}
+
+.menu-containerlight{
+    scrollbar-color:rgb(145, 145, 145) #ffffff ;
+    scrollbar-width:thin;
+}
+.menu-containerlight::-webkit-scrollbar {
+    width: 10px;
+}
+.menu-containerlight::-webkit-scrollbar-track {
+    background: #ffffff;
+}
+.menu-containerlight::-webkit-scrollbar-thumb {
+    background: rgb(145, 145, 145);
+    border-radius: 8px;
+}

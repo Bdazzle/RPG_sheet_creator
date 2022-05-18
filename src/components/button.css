@@ -1,0 +1,26 @@
+.radio-outer-circle {
+  width: 8px;
+  height: 8px;
+  border: 1px solid black;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 2px;
+  transition: all 0.1s linear;
+}
+
+.radio-inner-circle {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: black;
+  transition: all 0.1s linear;
+}
+.unselected {
+  border: 1px solid black;
+}
+.unselected-circle {
+  width: 0;
+  height: 0;
+}

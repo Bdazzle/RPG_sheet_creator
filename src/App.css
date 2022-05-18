@@ -1,38 +1,112 @@
-.App {
-  text-align: center;
+@font-face {
+  font-family: Werewolf;
+  src: url('./World of Darkness/WEREWOLF.TTF');
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.main_container {
+  margin: 0px 20px 0px 20px;
+  padding-top: 70px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  justify-items: flex-start;
 }
 
-.App-link {
-  color: #61dafb;
+body {
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  overflow-x: hidden;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.theme_button {
+  left: 0;
+  height: 100%;
+  width: 50%;
+  opacity: .5;
+}
+
+.pink {
+  border: 1mm ridge pink;
+  background: no-repeat center/90% url('./Icons/pink.png');
+}
+
+.pink:hover {
+  border: 1mm ridge #ff5858;
+  opacity: 1;
+}
+
+.pink:focus {
+  border: 1mm inset #ff5858;
+  opacity: 1;
+}
+
+.light {
+  background: no-repeat center/90% url('./Icons/light.png');
+}
+
+.light:hover {
+  border: 1mm ridge lightblue;
+  opacity: 1;
+}
+
+.light:focus {
+  border: 1mm inset lightblue;
+  opacity: 1;
+}
+
+.dark {
+  background: no-repeat center/90% url('./Icons/dark.png');
+}
+
+.dark:hover {
+  border: 1mm ridge #454545;
+  opacity: 1;
+}
+
+.dark:focus {
+  border: 1mm inset white;
+  opacity: 1;
+}
+
+.G_button {
+  max-height: 42px;
+  max-width: 130px;
+}
+
+a {
+  text-decoration: none;
+}
+
+#nav_bar {
+  background-color: rgb(244, 244, 244);
+}
+.page_route_text{
+  line-height: 24px;
+  font-size: 28px;
+  font-weight: bold;
+}
+#notes_container{
+  margin: 0px 20px 0px 20px;
+  display: flex; 
+  flex-direction: column; 
+  bottom: 0;
+}
+.link_text:hover{
+  text-decoration: underline;
+}
+
+.stat_title {
+  text-align: center;
+  width:auto;
+  font-weight: bold;
+}
+.substat_container{
+  display: grid;
+  grid-template-columns: repeat(3,auto);
+  grid-auto-rows: minmax(50px, auto);
+}
+.no_substats_container {
+  display: grid;
+  grid-template-columns: repeat(3,auto);
+  grid-auto-rows: minmax(50px, auto);
 }

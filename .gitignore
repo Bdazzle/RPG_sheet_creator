@@ -1,6 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
+/firebase
+/OAuth2
 /node_modules
 /.pnp
 .pnp.js
@@ -17,7 +19,15 @@
 .env.development.local
 .env.test.local
 .env.production.local
+/.firebase
+/backend
+src/World of Darkness
 
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+src/firebase
+src/OAuth2
+
+*.jpg

@@ -1,0 +1,10 @@
+type Games {
+    game_name: String!
+    system: String!
+    powerpips: boolean
+    sheet_url: String
+}
+
+type Query {
+    getSystemsList(): Games
+}
