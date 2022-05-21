@@ -136,12 +136,16 @@ useEffect(() =>{
     }
   }
 
+  /*
+  called only if preexisting System option is chosen, but Game option is Custom
+  */
   const replaceStat = (newVal: string, position: number, statType: keyof SheetStats) => {
-    const newStatArray = (character.templateData.stats as SheetStats)[statType].map((oldVal, i) => i === position ? newVal : oldVal)
+    const newStatArray = (character.templateData.stat_block as SheetStats)[statType].map((oldVal, i) => i === position ? newVal : oldVal)
     setCharacter({
       ...character,
       templateData: {
-        'stats': { ...(character.templateData.stats as SheetStats), [statType]: newStatArray }
+        ...character.templateData,
+        stat_block: { ...(character.templateData.stat_block as SheetStats), [statType]: newStatArray }
       }
     })
   }

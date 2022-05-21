@@ -106,7 +106,7 @@ export const SheetCreator: React.FC<CreatorProps> = ({ saveCharacter, setPath, s
                     system: savedTemplate.system
                 }, 'GetGamesList')
                 if (data) {
-                    setTemplatesOptions(data.templates_games.map((game: { game_name: String }) => game.game_name))
+                    setTemplatesOptions(["Custom", ...data.templates_games.map((game: { game_name: String }) => game.game_name)])
                 }
             }
         }
@@ -139,16 +139,14 @@ export const SheetCreator: React.FC<CreatorProps> = ({ saveCharacter, setPath, s
     }, [gameData])
 
     const handleGameChange = async (val: string) => {
-        // console.log(val)
         let { data } = await staticQuery(getGameSheet, process.env.REACT_APP_HASURA_ENDPOINT as string, {
             Authorization: `Bearer ${token}`
         }, {
             game_name: val
         }, 'GetGameSheet')
-        // console.log('data', data)
         const updatedSheetdata: SheetData = { ...savedTemplate, ...data.templates_game_sheets[0], template: val }
         const newCharacterSheet = makeSheetObj(data.templates_game_sheets[0].stat_block, {})
-        saveCharacter(newCharacterSheet , `character`)
+        saveCharacter(newCharacterSheet, `character`)
         setGameData(updatedSheetdata)
 
     }
@@ -161,7 +159,15 @@ export const SheetCreator: React.FC<CreatorProps> = ({ saveCharacter, setPath, s
         display: 'flex',
         flexDirection: 'column',
     }
-
+    if (savedTemplate!.stat_block) {
+        Object.entries(savedTemplate!.stat_block).map(([key, val]: [string, WoDstatSection]) => {
+            // console.log('val1',val)
+            Object.entries(val as WoDstatSection).map(([key2, val2]: [string, any]) => {
+                // console.log('val2', val2)
+            })
+        })
+    }
+    // console.log(savedTemplate.stat_block)
     return (
         <div style={{ width: '90vw', lineHeight: 1.5 }}>
             <div>This is the <span className='page_route_text'>Creator</span> screen. <br />
@@ -202,7 +208,7 @@ export const SheetCreator: React.FC<CreatorProps> = ({ saveCharacter, setPath, s
                             paddingBottom: 10,
                         }}
                     />
-                    {(templatesOptions as string[]).length > 0  ?
+                    {(templatesOptions as string[]).length > 0 ?
                         <DropDownMenu inputList={templatesOptions} className={`Game`} changeFunction={handleGameChange}
                             labelText={`Game`}
                             defaultValue={savedTemplate ? savedTemplate!.template as string : "--Choose a Game--"}
@@ -269,32 +275,42 @@ export const SheetCreator: React.FC<CreatorProps> = ({ saveCharacter, setPath, s
                                                     : ''}`}>
                                             {
                                                 // savedTemplate.template === "Custom" ?
-                                                Object.entries(val).map(([key2, val2]: [string, any]) =>
-                                                    typeof val2 === 'object' ?
-                                                        <div key={key2 + val2}>
+                                                Object.entries(val as WoDstatSection).map(([key2, val2]: [string, any], pos : number) =>
+                                                    savedTemplate.template !== "Custom" ?
+                                                        typeof val2 === 'object' ?
+                                                            // savedTemplate.template !== "Custom" ?
+                                                            <div key={key2 + val2}>
+                                                                <div key={key2} className="substat_title" style={{
+                                                                    textAlign: 'center'
+                                                                }}>{key2}
+                                                                </div>
 
-                                                            <div key={key2} className="substat_title" style={{
+                                                                <div key={`${key2}_substat_container`} className='substat_container'
+                                                                >
+                                                                    {Array.isArray(val2) ?
+                                                                        val2.map(stat => <div key={stat} id={stat}>{stat}</div>)
+                                                                        : ''}
+                                                                    {/* {
+                                                                        savedTemplate.template === "Custom" ?
+                                                                            Object.keys(val2).map((stat, index) => <input key={stat} defaultValue={stat} onBlur={(e) => replaceStat(e.target.value, index, key)}></input>)
+
+                                                                            :
+                                                                            Array.isArray(val2) ?
+                                                                                val2.map(stat => <div key={stat} id={stat}>{stat}</div>)
+                                                                                : ''
+                                                                    } */}
+                                                                </div>
+                                                            </div>
+                                                            :
+                                                            // val2.map((stat: any, index : number) => <input key={stat} defaultValue={stat} onBlur={(e) => replaceStat(e.target.value, index, key)}></input>)
+                                                            <div key={key2} id={key2} style={{
                                                                 textAlign: 'center'
-                                                            }}>{key2}
-                                                            </div>
-
-                                                            <div key={`${key2}_substat_container`} className='substat_container'
-                                                            >
-                                                                {
-                                                                    savedTemplate.template === "Custom" ?
-                                                                        Object.keys(val2).map((stat, index) => <input key={stat} defaultValue={stat} onBlur={(e) => replaceStat(e.target.value, index, key)}></input>)
-                                                                        :
-                                                                        Array.isArray(val2) ?
-                                                                            val2.map(stat => <div key={stat} id={stat}>{stat}</div>)
-                                                                            : ''
-                                                                }
-                                                            </div>
-                                                        </div>
-                                                        :
-                                                        <div key={key2} id={key2} style={{
-                                                            textAlign: 'center'
-                                                        }}>{val2}</div>
-
+                                                            }}>{val2}</div>
+                                                        : 
+                                                        // <div>{val2 + pos + key}</div>
+                                                        <input key={val2} defaultValue={val2} onBlur={(e) => replaceStat(e.target.value, pos, key)} ></input>
+                                                        // val2.map((stat: any, index: number) => <input key={stat} defaultValue={stat} onBlur={(e) => replaceStat(e.target.value, index, key)}></input>)
+                                                    // Object.keys(val2).map((stat, index) => <input key={stat} defaultValue={stat} onBlur={(e) => replaceStat(e.target.value, index, key)}></input>)
                                                 )}
                                         </div>
                                     </div>

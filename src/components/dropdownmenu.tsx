@@ -19,6 +19,7 @@ export const DropDownMenu: React.FC<DropMenu> = ({ inputList, className, changeF
     const { theme } = useContext(AppContext)
     const classSelector = className.split(' ').join('')
     const {marginTop, ...parentStyles} = style
+    
     /*
     height is equal to combined height of all list items (since long item text may take up multiple lines)
     or the current selection height
@@ -37,7 +38,6 @@ export const DropDownMenu: React.FC<DropMenu> = ({ inputList, className, changeF
             onScrollEnd && onScrollEnd()
         }
     }
-   
     return (
         <div style={parentStyles}>
             <div>{labelText}</div>

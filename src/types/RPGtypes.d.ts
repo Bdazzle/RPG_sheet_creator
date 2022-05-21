@@ -94,7 +94,7 @@ export interface WoDGames {
    
 }
 export type WoDstatSection = {
-    [key: string]: string[] | StatSubSection | PowerPointsSect
+    [key: string]: string[] | {[key: string]: string[]} | {[key: string]: {perm: number,temp: number}}
 }
 
 export type StatSubSection = {

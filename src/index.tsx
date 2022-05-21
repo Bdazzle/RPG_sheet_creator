@@ -53,6 +53,7 @@ ReactDOM.render(
       domain={"dev-pbm6545e.us.auth0.com"}
       clientId={`qzU5ssLKwmV6MhOmVTlqYtwPnFUIln29`}
       redirectUri={`http://localhost:3000/`}//change this to live url before deploy
+      // redirectUri={`https://rpgsheetgenerator.web.app/`}
       audience={"rpgsheetcreator"}
       useRefreshTokens={true}
     >
