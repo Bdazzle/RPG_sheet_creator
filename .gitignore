@@ -23,6 +23,7 @@
 /.firebase
 /backend
 src/World of Darkness
+*.rules
 
 npm-debug.log*
 yarn-debug.log*
