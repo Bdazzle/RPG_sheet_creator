@@ -7,7 +7,7 @@ import { SheetScreen } from "./pages/sheetScreen"
 import { BrowserRouter as Router, Link, Route } from "react-router-dom";
 import CanvasEditor from "./CanvasEditor/CanvasEditor"
 import { SheetEditor } from "./pages/sheet_editor"
-import { Sections, SheetData, CharacterData, SheetStats, CustomSheetData } from './types/RPGtypes.d.js'
+import { Sections, SheetData, CharacterData, SheetStats, CustomSheetData, SheetTypes } from './types/RPGtypes.d.js'
 import { AppContext } from './AppContext';
 import { IconedButton } from './components/IconedButton';
 import { useDebouncedCallback } from 'use-debounce';
@@ -17,7 +17,8 @@ import { insertShares, insertUser } from './graphql/mutations';
 import { staticQuery } from './graphql/queryHooks';
 import { Routes } from 'react-router';
 import { getExistingUser } from './graphql/queries';
-import dotenv from 'dotenv'
+import { googleLogout } from '@react-oauth/google';
+// import dotenv from 'dotenv'
 
 // dotenv.config()
 
@@ -32,10 +33,10 @@ export const App: React.FC = () => {
   const [scale, setScale] = useState<number>()
   const [showSharingModal, setshowSharingModal] = useState<boolean>(false)
   const { theme, dispatchTheme, isMobile, setIsMobile, character, setCharacter, userID, setUserID,
-    setToken } = useContext(AppContext)
-  const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
-  const [addUser, newUserData] = useMutation(insertUser)
-  const [updateSharedUsers, updatedSharedUsers] = useMutation(insertShares, {
+    setToken, signedInWithGoogle, setSignedInWithGoogle } = useContext(AppContext)
+  const { user, getAccessTokenSilently } = useAuth0();
+  const [addUser] = useMutation(insertUser)
+  const [updateSharedUsers] = useMutation(insertShares, {
     context: {
         headers: {
             "X-Hasura-User-Id": userID
@@ -50,6 +51,7 @@ useEffect(() =>{
   }
 },[character.characterInfo.character_name])
 
+/* remove this useEffect, make normal function so that it doesn't trigger when signed in with Google */
   useEffect(() => {
     if (user) {
       // console.log('auth0 user', user)
@@ -76,25 +78,23 @@ useEffect(() =>{
       }
       validateUser()
       setUserID(user!.email)
+      if(signedInWithGoogle) {
+        googleLogout()
+        setSignedInWithGoogle(false)
+      }
       // console.log('auth0 user', user)
     }
 
   }, [user])
 
   const saveTemplate = useCallback((selections: CustomSheetData) => {
-    if (selections.system && selections.system !== character.templateData.system) {
+    if (selections.system && selections.system !== (character.templateData as CustomSheetData).system) {
       setCharacter({ ...character, templateData: selections })
     }
     /*
     selections.sections will only be for custom sheets, as sections will contain coordinates and labels for them.
     */
-    setCharacter((character: CharacterData<SheetData, any>) => ({ ...character, characterInfo: { ...character.characterInfo, ...selections } }))
-    // if (selections.sections) {
-    //   setCharacter({ ...character, characterInfo: selections })
-    //   console.log('test')
-    // } else {
-    //   setCharacter((character: CharacterData<SheetData, any>) => ({ ...character, characterInfo: { ...character.characterInfo, ...selections } }))
-    // }
+    setCharacter((character: CharacterData<SheetTypes, any>) => ({ ...character, characterInfo: { ...character.characterInfo, ...selections } }))
   }, [character])
 
   const saveCurrentPath = useCallback((path: string) => {
@@ -105,7 +105,7 @@ useEffect(() =>{
 
   const addCharacterName = (characterName: string) => {
     if (characterName.length >= 1) {
-      if (character.templateData.system === "Custom") {
+      if ((character.templateData as SheetData | CustomSheetData).system === "Custom") {
         setCharacter({...character,
           characterInfo:{
             ...character.characterInfo,
@@ -117,13 +117,13 @@ useEffect(() =>{
   }
 
   const addShareUsers = async (sharedUsers: string[]) => {
-    if (character.templateData.sheet_uuid) {
+    if ((character.templateData as CustomSheetData).sheet_uuid) {
       sharedUsers.forEach(async (userEmail) =>{
         let { data } = await updateSharedUsers({
           variables: {
             creator_id: userID,
-            sheet_id: character.templateData.sheet_uuid,
-            system_id: character.templateData.system_name,
+            sheet_id: (character.templateData as CustomSheetData).sheet_uuid,
+            system_id: (character.templateData as CustomSheetData).system_name,
             user_id: userEmail
           }
         })
@@ -134,20 +134,6 @@ useEffect(() =>{
     } else {
       alert('Save your Custom sheet before sharing')
     }
-  }
-
-  /*
-  called only if preexisting System option is chosen, but Game option is Custom
-  */
-  const replaceStat = (newVal: string, position: number, statType: keyof SheetStats) => {
-    const newStatArray = (character.templateData.stat_block as SheetStats)[statType].map((oldVal, i) => i === position ? newVal : oldVal)
-    setCharacter({
-      ...character,
-      templateData: {
-        ...character.templateData,
-        stat_block: { ...(character.templateData.stat_block as SheetStats), [statType]: newStatArray }
-      }
-    })
   }
 
   const addCharacterNotes = (textEvent: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -162,28 +148,13 @@ useEffect(() =>{
   }
 
   useMemo(() => {
-    document.body.style.setProperty("background-color", theme.backgroundColor);
-    document.body.style.setProperty("color", theme.color);
-    document.body.style.backgroundImage = `url(${theme.backgroundImage})`;
-    document.querySelectorAll('.navigation_button').forEach((node) => {
-      (node as HTMLAnchorElement).style.setProperty("color", theme.color)
-    })
+      document.body.style.setProperty("background-color", theme.backgroundColor);
+      document.body.style.setProperty("color", theme.color);
+      document.body.style.backgroundImage = `url(${theme.backgroundImage})`;
+      document.querySelectorAll('.navigation_button').forEach((node) => {
+        (node as HTMLAnchorElement).style.setProperty("color", theme.color)
+      })
   }, [theme])
-
-  const saveCharacter = (data: object, characterSection: string): void => {
-    if (characterSection === `character`) {
-      setCharacter({ ...character, characterInfo: data })
-    }
-    else if (characterSection === `template`) {
-      setCharacter((character: CharacterData<SheetData, any>) => ({
-        ...character,
-        templateData: {
-          ...character.templateData,
-          ...(data as SheetData)
-        }
-      }))
-    }
-  }
 
   const handleResize = useDebouncedCallback(() => setIsMobile(window.innerWidth as number <= 640), 200)
 
@@ -207,6 +178,11 @@ useEffect(() =>{
     alignItems: 'center',
     marginBottom: '20px',
   }
+
+  // if(character.characterInfo.sections){
+  //   console.log(character.characterInfo.sections.value)
+  // }
+ 
 
   return (
     <>
@@ -236,9 +212,9 @@ useEffect(() =>{
             right: 10,
             zIndex: 2,
           }}>
-            <button id="dark_theme_button" className="dark theme_button" value='dark' onClick={(e) => dispatchTheme(e.currentTarget.value)}></button>
-            <button id="light_theme_button" className="light theme_button" value='light' onClick={(e) => dispatchTheme(e.currentTarget.value)}></button>
-            <button id="pink_theme_button" className="pink theme_button" value='pink' onClick={(e) => dispatchTheme(e.currentTarget.value)}></button>
+            <button aria-label="dark theme" id="dark_theme_button" className="dark theme_button" value='dark' onClick={(e) => dispatchTheme(e.currentTarget.value)}></button>
+            <button aria-label="light theme" id="light_theme_button" className="light theme_button" value='light' onClick={(e) => dispatchTheme(e.currentTarget.value)}></button>
+            <button aria-label="pink theme" id="pink_theme_button" className="pink theme_button" value='pink' onClick={(e) => dispatchTheme(e.currentTarget.value)}></button>
           </div>
         </div>
       }
@@ -283,7 +259,7 @@ useEffect(() =>{
                 paths={["M500.5 231.4l-192-160C287.9 54.3 256 68.6 256 96v320c0 27.4 31.9 41.8 52.5 24.6l192-160c15.3-12.8 15.3-36.4 0-49.2zm-256 0l-192-160C31.9 54.3 0 68.6 0 96v320c0 27.4 31.9 41.8 52.5 24.6l192-160c15.3-12.8 15.3-36.4 0-49.2z"]}
               />
             </Link>
-            <div style={{
+            <h1 style={{
               width: '313px',
               height: '35px',
               alignSelf: 'center',
@@ -293,9 +269,9 @@ useEffect(() =>{
               fontStyle: 'normal',
               fontWeight: 'normal',
               fontSize: isMobile ? '24px' : '36px',
-              lineHeight: '24px',
-              paddingBottom: 15,
-            }}>RPG sheet creator</div>
+              // lineHeight: '24px',
+              // paddingBottom: 15,
+            }}>RPG sheet creator</h1>
             <Link to={currentPath === 'creator' ? "editor" :
               currentPath === 'editor' ? "creator"
                 : "editor"
@@ -337,50 +313,45 @@ useEffect(() =>{
           <Routes>
             <Route path="/creator" element={
               <SheetCreator
-                replaceStat={replaceStat}
-                saveCharacter={saveCharacter}
                 setPath={saveCurrentPath}
-                savedTemplate={character.templateData}
-                // systemChange={handleSystemChange}
+                savedTemplate={character.templateData as SheetData}
               />
             }
             />
             <Route path="/" element={
               <SheetCreator
-                replaceStat={replaceStat}
-                saveCharacter={saveCharacter}
                 setPath={saveCurrentPath}
-                savedTemplate={character.templateData}
-                // systemChange={handleSystemChange}
+                savedTemplate={character.templateData as SheetData}
               />
             }
             />
             <Route path="/sheet" element={
-              <SheetScreen addCharacterName={addCharacterName} saveCharacter={saveCharacter} setPath={saveCurrentPath} 
-              // sheet={character.templateData} characterData={character.characterInfo} 
+              <SheetScreen 
+              addCharacterName={addCharacterName} 
+              setPath={saveCurrentPath} 
               />
             } />
             <Route path="/editor" element={
-              <SheetEditor setPath={saveCurrentPath} 
-              // systemName={character.templateData.system_name as string} 
-              // saveCharacter={saveCharacter} 
+              <SheetEditor 
+              setPath={saveCurrentPath} 
               />
             }>
             </Route>
-            {/* <Route path="/signup" element={<Signup />} /> */}
           </Routes>
           <div>
-          {character.templateData.system === "Custom" &&
+          {(character.templateData as SheetData | CustomSheetData).system === "Custom" &&
         <>
           <label htmlFor='character_name'>Character Name: </label>
           <input ref={nameref} id='character_name' style={{ width: '25%' }} onChange={(e) => addCharacterName(e.target.value)}></input>
         </>
       }
-            {character.templateData.system === "Custom" && currentPath !== 'sheet' &&
+            {(character.templateData as CustomSheetData).system === "Custom" && currentPath !== 'sheet' &&
               <div style={{ paddingTop: 5, paddingBottom: 5 }}>
                 <label>System Name: </label>
-                { character.templateData.creatorID === userID ?
-                <input id="system_name" key={character.templateData.system_name as string} defaultValue={character.templateData.system_name as string} type="text"
+                { (character.templateData as CustomSheetData).creatorID === userID ?
+                <input id="system_name" key={(character.templateData as CustomSheetData).system_name as string} 
+                defaultValue={(character.templateData as CustomSheetData).system_name as string} 
+                type="text"
                   onBlur={(e) => setCharacter({
                     ...character,
                     templateData: {
@@ -391,7 +362,7 @@ useEffect(() =>{
                 />
                 :
                 <div>
-                  {character.templateData.system_name}
+                  {(character.templateData as CustomSheetData).system_name}
                 </div>
 }
               </div>
@@ -399,22 +370,28 @@ useEffect(() =>{
           </div>
         </Router>
         {
-          showSharingModal === true && <ShareModal showSharingModal={showSharingModal} setSharing={setshowSharingModal} addUsers={addShareUsers} savedCharacter={character} />
+          showSharingModal === true && 
+          <ShareModal 
+          showSharingModal={showSharingModal} 
+          setSharing={setshowSharingModal} 
+          addUsers={addShareUsers} 
+          savedCharacter={character as CharacterData<SheetData, any>} 
+          />
         }
 
         {
-          character.templateData && character.templateData.system === "Custom" &&
+          character.templateData && (character.templateData as CustomSheetData).system === "Custom" &&
           <CanvasEditor
             savedimageUri={ character.characterInfo.image}
             savedSections={character.characterInfo && character.characterInfo.sections as Sections}
             storeSections={saveTemplate}
             scale={scale}
             editorMode={currentPath}
-            system_name={character.templateData.system_name as string}
+            system_name={(character.templateData as CustomSheetData).system_name as string}
           />
         }
       </div>
-      {character.templateData.system &&
+      {(character.templateData as CustomSheetData).system &&
         <div id="notes_container" style={{ display: 'flex', flexDirection: 'column', bottom: 0 }}>
           <label htmlFor="character_notes">Character Notes</label>
           <textarea onChange={(e) => addCharacterNotes(e)}

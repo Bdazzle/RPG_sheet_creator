@@ -124,18 +124,22 @@ const handleFontSizeChange = (val: number) : void => {
       <div className="values_container" style={{ display: 'flex', flexDirection: 'row' }}>
         <div className="stat_division">
           <label>Current</label>
-          <input className="label_inputs" defaultValue={defaultValInput.current} onBlur={(e) => statStyle === "Text" ? setValue({ current: e.target.value }) : setValue({ ...value, current: e.target.value })}></input>
+          <input className="label_inputs" 
+          defaultValue={defaultValInput && defaultValInput.current} 
+          onBlur={(e) => statStyle === "Text" ? setValue({ current: e.target.value }) : setValue({ ...value, current: e.target.value })}></input>
         </div>
         {(statStyle === "Pips" || statStyle === "Checkboxes") &&
           <div className="stat_division">
             <label>Max</label>
-            <input className="label_inputs" defaultValue={defaultValInput.max} onBlur={(e) => setValue({ ...value as StatValues, max: e.target.value })}></input>
+            <input className="label_inputs" 
+            defaultValue={defaultValInput && defaultValInput.max} 
+            onBlur={(e) => setValue({ ...value as StatValues, max: e.target.value })}></input>
           </div>
         }
       </div>
       <div className={'editor_only_options'} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly' }}>
         {editorMode === 'editor' &&
-          <button className="row_delete" style={{ height: 20, marginTop: 5, width: 30 }} onClick={(e) => deleteButtonClick(e)}>
+          <button aria-label='delete row' className="row_delete" style={{ height: 20, marginTop: 5, width: 30 }} onClick={(e) => deleteButtonClick(e)}>
             <i className="fas fa-trash"></i>
           </button>
         }
@@ -156,7 +160,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = ({ savedimageUri, savedSection
   const [mode, setMode] = useState<string>()
   const [storedCoordinates, setStoredCoordinates] = useState<Coordinates>([])
   const [imageUrl, setImageUrl] = useState<string>()
-  const [modeClicked, setModeClicked] = React.useState(false)
+  const [modeClicked, setModeClicked] = useState<boolean>(false)
   const [canvasDataUrl, setCanvasDataUrl] = useState<string>()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
@@ -178,7 +182,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = ({ savedimageUri, savedSection
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.preventDefault()
     
-    if (event.target.files) {
+    if (event.target.files && event.target.files[0].size <= 800000) {
       const convertedFile : File = event.target.files[0]
       if (convertedFile) {
         const convertedImageUrl = URL.createObjectURL(convertedFile);
@@ -190,15 +194,22 @@ const CanvasEditor: React.FC<CanvasEditorProps> = ({ savedimageUri, savedSection
           } as SheetData) 
         }
       }
+    } else {
+      alert('Image is too big! please select a smaller image')
     }
   }
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault()
     const convertedFile = event.dataTransfer.items[0].getAsFile() as File
-    const convertedImageUrl = URL.createObjectURL(convertedFile);
-    setImageUrl(convertedImageUrl)
-    if (storeSections) { storeSections({ sections: sections, image: convertedFile } as SheetData) }
+    if(convertedFile.size <= 800000){
+      const convertedImageUrl = URL.createObjectURL(convertedFile);
+      setImageUrl(convertedImageUrl)
+      if (storeSections) { storeSections({ sections: sections, image: convertedFile } as SheetData) }
+    } else {
+      alert('Image is too big! please select a smaller image')
+    }
+    
   }
 
   const handleDrag = (event: React.DragEvent<HTMLDivElement>): void => {
@@ -362,7 +373,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = ({ savedimageUri, savedSection
     const y = e.clientY - rect.top
     if (mode === "rectangle" || mode === "circle") {
       //check to see if there are less than the 2 coordinate sets needed to create a rectangle, and make sure the previous coordinates are not the same
-      if (storedCoordinates.length <= 1 && storedCoordinates[storedCoordinates.length - 1] !== [x, y]) {
+      if (storedCoordinates.length <= 1 && (storedCoordinates[storedCoordinates.length - 1] !== [x, y])) {
         setStoredCoordinates([...storedCoordinates, [x, y]])
         setModeClicked(true)
       }
@@ -505,7 +516,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = ({ savedimageUri, savedSection
     margin: 2,
     border: '2px outset rgba(0, 92, 135)',
   }
-
+  
   return (
     <div style={{ display: 'flex', flexDirection: scale < 1 ? 'column' : 'row', minWidth: sheetWidth * 1.5 }}>
       <div style={{
@@ -571,7 +582,8 @@ const CanvasEditor: React.FC<CanvasEditorProps> = ({ savedimageUri, savedSection
         }
         {editorMode !== 'creator' &&
           <div ref={inputContainer} id="labels" style={{ display: "flex", flexDirection: "column", width: 300 }}>
-            {sections && Object.keys(sections).map((el, i) => <SelectionInputs
+            {
+            sections !== undefined && Object.keys(sections).map((el, i) => <SelectionInputs
               editorMode={editorMode!}
               defaultColor={sections[el].fillcolor}
               defaultStyle={sections[el].style}
@@ -586,7 +598,8 @@ const CanvasEditor: React.FC<CanvasEditorProps> = ({ savedimageUri, savedSection
               handleColor={assignColor}
               handleFontSize={assignFontSize}
               index={i}
-              key={el} />)}
+              key={el} />)
+              }
           </div>
         }
       </div>

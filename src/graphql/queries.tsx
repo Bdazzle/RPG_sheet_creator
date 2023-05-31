@@ -1,7 +1,7 @@
 
 export const getSystemsList =/* GraphQL */`
 query GetSystemsList {
-  templates_games {
+  templates_games(distinct_on: system){
     system
   }
 }

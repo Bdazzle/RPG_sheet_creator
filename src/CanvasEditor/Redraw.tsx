@@ -211,9 +211,11 @@ export const redrawCanvas: Redraw = (imageUri, sections, ctx, width, height, sca
     canvasImage.src = imageUri
     ctx.drawImage(canvasImage, 0, 0, width, height)
 
+    
     for (let sectionKey in sections) {
         ctx.fillStyle = sections[sectionKey].fillcolor
         ctx.strokeStyle = sections[sectionKey].fillcolor
+        console.log(sections[sectionKey])
         const startX = sections[sectionKey].coordinates[0][0] * scale
         const startY = sections[sectionKey].coordinates[0][1] * scale
         const endX = sections[sectionKey].coordinates[1][0] * scale

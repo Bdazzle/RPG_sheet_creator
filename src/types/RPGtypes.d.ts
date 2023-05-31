@@ -30,15 +30,13 @@ export type NestedSections = {
     fontSize?: number;
 }
 
-// export type SheetData = {
-//     [key: string]: string | object | File
-// }
-
+/* Change SheetData to interface. Extend SheetData for CustomSheetData? */
 export type SheetData = {
     system: string
     stat_block: object
     sheet_url: File | string
-    pips:boolean
+    pips?:boolean
+    style?: string
     template: string
 }
 
@@ -51,13 +49,15 @@ export type CustomSheetData = {
     sheet_uuid?: uuid
 }
 
+export type SheetTypes = {} | SheetData | CustomSheetData;
 
 export type CharacterData<T, K> = {
     templateData: T
     characterInfo: { [key: string]: K }
-    character_uuid: uuid | undefined
+    character_uuid?: uuid | undefined
     creatorID?: string
     sharedWith?: string[]
+    character_name?: string
 }
 
 
@@ -81,6 +81,16 @@ export type WoD5eTemplateSections = {
     stats: SheetStats
     sheet_url: string
     pips: boolean
+}
+
+export interface WoD5eStatCategory {
+    // substat: string
+    rows: number;
+    fields: { [key: string]: number }
+    max: number;
+    category: string;
+    categoryHeads?: string[];
+    addToCharacter: AddToCharacter
 }
 
 export type SheetStats = {
@@ -120,8 +130,8 @@ export interface Editor {
     setPath: (path: string) => void
 }
 
-export type AddToCharacter = (bottomlayer: string, val: string | number | object, layer1?: string, layer2?: string) => void
-export type RemoveFromCharacter = (val: string, layer1: string, layer2?: string, layer3?: string) => void
+export type AddToCharacter<T> = ( val: T, bottomlayer: string, layer1?: string, layer2?: string) => void
+export type RemoveFromCharacter<T> = (val: T, bottomLayer: string, layer1?: string, layer2?: string) => void
 
 export interface CharacterTextFields {
     substat: string
@@ -137,7 +147,7 @@ export interface AttributeFields {
     max: number[];
     addToCharacter: AddToCharacter
     category: string;
-    subattr?: string
+    substat?: string
 }
 
 export type WoDStatCategory = {
@@ -148,36 +158,6 @@ export type WoDStatCategory = {
     categoryTitles?: string[];
     addToCharacter: AddToCharacter
     substat?: string
-}
-
-export interface PowerTable {
-    savedPowers: Powers | string[]
-    hasPips: boolean
-    totalcells: number;
-    powerType: string;
-    maxlevels: number;
-    addToCharacter: AddToCharacter
-    removeFromCharacter: RemoveFromCharacter
-    substat?: string
-}
-export type Powers = {
-    [key: string]: {
-        [key: number]: string
-    }
-}
-
-export interface PowerCell {
-    power?: [string, PowerLevels] | string[]
-    hasPips: boolean
-    maxlevel: number;
-    addPower: (val: object | string, attr?: string) => void;
-    removePower: (attr: string) => void;
-    cellheight: number;
-    cellwidth: number;
-}
-
-export type PowerLevels = {
-    [key: number]: string
 }
 
 export type HealthSection = {
@@ -194,6 +174,7 @@ export interface BlankFieldsContainer {
     removeFromCharacter: RemoveFromCharacter
     substat?: string
 }
+
 export interface BlankField {
     childkey: string
     substat: string | undefined,
@@ -214,28 +195,10 @@ export type DualStat = {
     temp: number
 }
 
-export interface WoD5eStatCategory {
-    substat: string
-    rows: number;
-    fields: { [key: string]: number }
-    max: number;
-    category: string;
-    categoryTitles?: string[];
-    addToCharacter: AddToCharacter
-}
-
-// export interface Boxes {
-//     savedValue?: number;
-//     max: number;
-//     category: string;
-//     addToCharacter: AddToCharacter
-//     orientation: string
-// }
-
 export interface OverlayProps {
     game: keyof WoDGames | WoD5egames;
-    saveCharacter: (data: object, characterSection: string) => void
-    savedCharacter: CharacterSheet<any>
+    // saveCharacter: (data: object, characterSection: string) => void
+    // savedCharacter: CharacterSheet<any>
 }
 
 export type WoDStats = {

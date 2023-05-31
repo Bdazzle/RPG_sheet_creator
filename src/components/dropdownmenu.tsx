@@ -26,7 +26,7 @@ export const DropDownMenu: React.FC<DropMenu> = ({ inputList, className, changeF
     */
     useEffect(() => {
         const height = focused ? Array.from(document.querySelectorAll(`.${classSelector}item`)).reduce((acc, curr) => curr.clientHeight + acc, 0)
-            : document.querySelector(`.${classSelector}_selection`) && document.querySelector(`.${classSelector}_selection`)!.clientHeight > 18 ? document.querySelector(`.${classSelector}_selection`)!.clientHeight
+            : document.querySelector(`.${classSelector}-selection`) && document.querySelector(`.${classSelector}-selection`)!.clientHeight > 18 ? document.querySelector(`.${classSelector}-selection`)!.clientHeight
                 : 18
         setDroppedHeight(height)
     }, [focused, classSelector])
@@ -41,7 +41,7 @@ export const DropDownMenu: React.FC<DropMenu> = ({ inputList, className, changeF
     return (
         <div style={parentStyles}>
             <div>{labelText}</div>
-            <div id="selection_container" style={{
+            <div id="selection-container" style={{
                 display: 'flex',
                 flexDirection: 'row',
                 border: `1px solid ${theme.color}`,
@@ -51,7 +51,7 @@ export const DropDownMenu: React.FC<DropMenu> = ({ inputList, className, changeF
             }}
                 onClick={() => setFocused(!focused)}
             >
-                <div className={`${className}_selection`} style={{
+                <div className={`${className}-selection`} style={{
                     marginLeft: 5,
                     flexGrow: 1,
                     minHeight: 18,
@@ -78,9 +78,9 @@ export const DropDownMenu: React.FC<DropMenu> = ({ inputList, className, changeF
                     position:'absolute',
                     marginTop: style.marginTop,
                     height: droppedHeight,
-                    maxHeight: 20 * 18,
+                    maxHeight: 20 * 18,//18 is font weight of each row?
                     width: 200,
-                    top: document.querySelector(`.${className}_selection`)! ? 18 + document.querySelector(`.${className}_selection`)!.clientHeight : 18,
+                    top: document.querySelector(`.${className}-selection`)! ? 18 + document.querySelector(`.${className}-selection`)!.clientHeight : 18,
                     backgroundColor: theme.backgroundColor,
                 }}
                     onClick={() => setFocused(!focused)}

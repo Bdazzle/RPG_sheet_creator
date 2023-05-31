@@ -5,6 +5,7 @@ import { DropDownMenu } from '../components/dropdownmenu';
 import { AppContext } from '../AppContext';
 import { staticQuery } from '../graphql/queryHooks';
 import { getGameSheet, getGamesList, getSystemsList } from '../graphql/queries';
+// import { WoD5EdefaultTemplates } from '../World of Darkness/templateDefaults.js';
 
 /*
 Character sheet will look like:
@@ -24,7 +25,6 @@ or Stat Category : {
     }
 }
 */
-
 /*
 recurrable?
 1)if statblock[category] is an array, assign to input object as [key: array val] : value
@@ -33,13 +33,23 @@ recurrable?
     if statblock[category][first_key] IS an array, recur as makeSheetObj(statblock[category], objToAssign),
     which should end up recurring as an array and assigning as step 1)
 */
-const makeSheetObj = (statblock: any, objToAssign: object): object => {
+export const makeSheetObj = (statblock: any, objToAssign: object): object => {
+    // console.log('makeSheet', statblock)
     for (let category in statblock) {
+        
         if (Array.isArray(statblock[category])) {
-            const substats = (statblock[category] as string[]).reduce((acc: { [key: string]: string }, curr: string) => {
-                return { ...acc, [curr]: '' }
-            }, {})
-            Object.assign(objToAssign, { [category]: { ...substats } })
+            
+            if(!statblock[category].length){
+                // console.log('makeSheet', category, statblock[category])
+                Object.assign(objToAssign, {[category] :[]})
+            } else {
+                const substats = (statblock[category] as string[]).reduce((acc: { [key: string]: string }, curr: string) => {
+                    return { ...acc, [curr]: '' }
+                }, {})
+                // console.log(substats)
+                Object.assign(objToAssign, { [category]: { ...substats } })
+            }
+            
         } else {
             let nest = { [category]: {} }
             Object.assign(objToAssign, nest)
@@ -49,22 +59,24 @@ const makeSheetObj = (statblock: any, objToAssign: object): object => {
     return objToAssign
 }
 
-// const makeObject = (arr: string[]): object => {
-//     return Object.assign({}, ...arr.map(key => ({ [key]: '' })))
-// }
-
 export interface CreatorProps {
-    saveCharacter: (data: object, characterSection: string) => void
     setPath: (path: string) => void
     savedTemplate: SheetData
-    replaceStat: (newVal: string, position: number, statType: keyof SheetStats) => void
-    // systemChange: React.Dispatch<SetStateAction<SheetData>>
 }
 
+const sheet_options_style: CSSProperties = {
+    position: 'relative'
+}
 
-export const SheetCreator: React.FC<CreatorProps> = ({ saveCharacter, setPath, savedTemplate, replaceStat }) => {
-    const [templatesOptions, setTemplatesOptions] = useState<string[]>([])//different sheets from each game system
-    const { theme, isMobile, token, setCharacter, character, userID } = useContext(AppContext)
+const mobile_sheet_options_style: CSSProperties = {
+    position: 'relative',
+    display: 'flex',
+    flexDirection: 'column',
+}
+
+export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate }) => {
+    const [templatesOptions, setTemplatesOptions] = useState<string[]>([]) //different sheets from each game system
+    const { theme, isMobile, token, setCharacter, character, userID, saveTemplate, saveCharacterStat, replaceStat } = useContext(AppContext)
     const [systems, setSystems] = useState<string[]>([])
     const [gameData, setGameData] = useState<SheetData>()
     let location = useLocation()
@@ -79,7 +91,7 @@ export const SheetCreator: React.FC<CreatorProps> = ({ saveCharacter, setPath, s
                 let { data } = await staticQuery(getSystemsList, process.env.REACT_APP_HASURA_ENDPOINT as string, {
                     Authorization: `Bearer ${token}`
                 }, {}, 'GetSystemsList')
-                // console.log('systems', data)
+
                 if (data) {
                     /*
                     always include "Custom" as first option for custom sheets
@@ -106,7 +118,9 @@ export const SheetCreator: React.FC<CreatorProps> = ({ saveCharacter, setPath, s
                     system: savedTemplate.system
                 }, 'GetGamesList')
                 if (data) {
-                    setTemplatesOptions(["Custom", ...data.templates_games.map((game: { game_name: String }) => game.game_name)])
+                    // setTemplatesOptions(["Custom", ...data.templates_games.map((game: { game_name: String }) => game.game_name)])
+                    setTemplatesOptions([...data.templates_games.map((game: { game_name: String }) => game.game_name)])
+                    //causing "Game" dropdown to show up when selecting custom system?
                 }
             }
         }
@@ -121,8 +135,9 @@ export const SheetCreator: React.FC<CreatorProps> = ({ saveCharacter, setPath, s
                 system: systemOption,
                 creatorID: userID!
             }, characterInfo: {}
-        }) :
-            setCharacter({ templateData: { system: systemOption }, characterInfo: {} })
+        }) 
+        :
+        setCharacter({ templateData: { system: systemOption }, characterInfo: {} })
     }
 
     /*
@@ -133,12 +148,12 @@ export const SheetCreator: React.FC<CreatorProps> = ({ saveCharacter, setPath, s
     */
     useEffect(() => {
         if (gameData) {
-            saveCharacter(gameData, `template`)
-            // console.info('saved template',gameData)
+            saveTemplate(gameData)
         }
     }, [gameData])
 
     const handleGameChange = async (val: string) => {
+        
         let { data } = await staticQuery(getGameSheet, process.env.REACT_APP_HASURA_ENDPOINT as string, {
             Authorization: `Bearer ${token}`
         }, {
@@ -146,35 +161,28 @@ export const SheetCreator: React.FC<CreatorProps> = ({ saveCharacter, setPath, s
         }, 'GetGameSheet')
         const updatedSheetdata: SheetData = { ...savedTemplate, ...data.templates_game_sheets[0], template: val }
         const newCharacterSheet = makeSheetObj(data.templates_game_sheets[0].stat_block, {})
-        saveCharacter(newCharacterSheet, `character`)
+        saveCharacterStat(newCharacterSheet)
         setGameData(updatedSheetdata)
 
     }
 
-    const sheet_options_style: CSSProperties = {
-        position: 'relative'
-    }
-    const mobile_sheet_options_style: CSSProperties = {
-        position: 'relative',
-        display: 'flex',
-        flexDirection: 'column',
-    }
-    if (savedTemplate!.stat_block) {
-        Object.entries(savedTemplate!.stat_block).map(([key, val]: [string, WoDstatSection]) => {
-            // console.log('val1',val)
-            Object.entries(val as WoDstatSection).map(([key2, val2]: [string, any]) => {
-                // console.log('val2', val2)
-            })
-        })
-    }
-    // console.log(savedTemplate.stat_block)
     return (
         <div style={{ width: '90vw', lineHeight: 1.5 }}>
             <div>This is the <span className='page_route_text'>Creator</span> screen. <br />
                 It's used to make selections for creating your own RPG character sheet or use a pre-existing character sheet template. <br />
 
-                The <Link to={'editor'} className="link_text" style={{ color: theme.color }} >Editor</Link> screen is used to edit your custom character sheet from images you upload. <br />
-                The <Link to={'sheet'} className="link_text" style={{ color: theme.color }} >Sheet</Link> screen is used to make changes to your character as you play.</div>
+                The <Link to={'editor'} className="link_text"
+                    style={{
+                        color: theme.color,
+                        textDecoration: 'underline'
+                    }}
+                >Editor</Link> screen is used to edit your custom character sheet from images you upload. <br />
+                The <Link to={'sheet'} className="link_text"
+                    style={{
+                        color: theme.color,
+                        textDecoration: 'underline'
+                    }}
+                >Sheet</Link> screen is used to make changes to your character as you play.</div>
 
             <div className="sheet_options"
                 style={isMobile ? mobile_sheet_options_style : sheet_options_style}>
@@ -209,7 +217,10 @@ export const SheetCreator: React.FC<CreatorProps> = ({ saveCharacter, setPath, s
                         }}
                     />
                     {(templatesOptions as string[]).length > 0 ?
-                        <DropDownMenu inputList={templatesOptions} className={`Game`} changeFunction={handleGameChange}
+                        <DropDownMenu
+                            inputList={templatesOptions}
+                            className={`Game`}
+                            changeFunction={handleGameChange}
                             labelText={`Game`}
                             defaultValue={savedTemplate ? savedTemplate!.template as string : "--Choose a Game--"}
                             style={{
@@ -219,7 +230,8 @@ export const SheetCreator: React.FC<CreatorProps> = ({ saveCharacter, setPath, s
                                 minWidth: 250,
                                 position: 'relative',
                                 color: theme.color,
-                                lineHeight: 1
+                                lineHeight: 1,
+                                paddingBottom: 10,
                             }}
                         />
                         :
@@ -240,6 +252,7 @@ export const SheetCreator: React.FC<CreatorProps> = ({ saveCharacter, setPath, s
                                             style={{
                                                 fontWeight: 'bold',
                                                 textAlign: 'center',
+                                                fontSize: 24
                                             }}
                                         >{key[0].toUpperCase() + key.substring(1)}</div>
                                         <div key={`${key}_stat_container`} className="stat_container"
@@ -249,9 +262,15 @@ export const SheetCreator: React.FC<CreatorProps> = ({ saveCharacter, setPath, s
                                                 gridAutoRows: 'minmax(50px, auto)'
                                             }}
                                         >
-                                            {savedTemplate.template === "Custom" ?
-                                                val.map((stat, index) => <input key={stat} defaultValue={stat} onBlur={(e) => replaceStat(e.target.value, index, key)}></input>)
-                                                : val.map(stat => <div key={stat}>{stat}</div>)
+                                            {
+                                                // savedTemplate.template === "Custom" ?
+                                                savedTemplate.template.includes("Custom") ?
+                                                    val.map((stat, index) => <input 
+                                                    key={stat} 
+                                                    defaultValue={stat} 
+                                                    onBlur={(e) => replaceStat(e.target.value, index, key)}>
+                                                    </input>)
+                                                    : val.map(stat => <div key={stat}>{stat}</div>)
                                             }
                                         </div>
                                     </div>
@@ -264,7 +283,13 @@ export const SheetCreator: React.FC<CreatorProps> = ({ saveCharacter, setPath, s
                             {
                                 savedTemplate!.stat_block && Object.entries(savedTemplate!.stat_block).map(([key, val]: [string, WoDstatSection]) =>
                                     <div key={key}>
-                                        <div key={`${key}_stat_title`} className="stat_title" id={`${key}_stat_title`}>
+                                        <div key={`${key}_stat_title`} className="stat_title" id={`${key}_stat_title`}
+                                            style={{
+                                                fontWeight: 'bold',
+                                                textAlign: 'center',
+                                                fontSize: 24
+                                            }}
+                                        >
                                             {key[0].toUpperCase() + key.substring(1)}
                                         </div>
                                         <div key={`${key}_stat_container`} id={key}
@@ -275,14 +300,16 @@ export const SheetCreator: React.FC<CreatorProps> = ({ saveCharacter, setPath, s
                                                     : ''}`}>
                                             {
                                                 // savedTemplate.template === "Custom" ?
-                                                Object.entries(val as WoDstatSection).map(([key2, val2]: [string, any], pos : number) =>
+                                                Object.entries(val as WoDstatSection).map(([key2, val2]: [string, any], pos: number) =>
                                                     savedTemplate.template !== "Custom" ?
-                                                        typeof val2 === 'object' ?
-                                                            // savedTemplate.template !== "Custom" ?
+                                                        Array.isArray(val2) && val2.length > 0 ?
                                                             <div key={key2 + val2}>
                                                                 <div key={key2} className="substat_title" style={{
-                                                                    textAlign: 'center'
-                                                                }}>{key2}
+                                                                    textAlign: 'center',
+                                                                    fontWeight: 'bold',
+                                                                    textDecoration: 'underline'
+                                                                }}>
+                                                                    {key2}
                                                                 </div>
 
                                                                 <div key={`${key2}_substat_container`} className='substat_container'
@@ -290,27 +317,23 @@ export const SheetCreator: React.FC<CreatorProps> = ({ saveCharacter, setPath, s
                                                                     {Array.isArray(val2) ?
                                                                         val2.map(stat => <div key={stat} id={stat}>{stat}</div>)
                                                                         : ''}
-                                                                    {/* {
-                                                                        savedTemplate.template === "Custom" ?
-                                                                            Object.keys(val2).map((stat, index) => <input key={stat} defaultValue={stat} onBlur={(e) => replaceStat(e.target.value, index, key)}></input>)
-
-                                                                            :
-                                                                            Array.isArray(val2) ?
-                                                                                val2.map(stat => <div key={stat} id={stat}>{stat}</div>)
-                                                                                : ''
-                                                                    } */}
                                                                 </div>
                                                             </div>
                                                             :
-                                                            // val2.map((stat: any, index : number) => <input key={stat} defaultValue={stat} onBlur={(e) => replaceStat(e.target.value, index, key)}></input>)
-                                                            <div key={key2} id={key2} style={{
-                                                                textAlign: 'center'
-                                                            }}>{val2}</div>
-                                                        : 
-                                                        // <div>{val2 + pos + key}</div>
-                                                        <input key={val2} defaultValue={val2} onBlur={(e) => replaceStat(e.target.value, pos, key)} ></input>
-                                                        // val2.map((stat: any, index: number) => <input key={stat} defaultValue={stat} onBlur={(e) => replaceStat(e.target.value, index, key)}></input>)
-                                                    // Object.keys(val2).map((stat, index) => <input key={stat} defaultValue={stat} onBlur={(e) => replaceStat(e.target.value, index, key)}></input>)
+                                                            typeof val2 === 'object' ?
+                                                                <div key={key2 + val2}>
+                                                                    <div key={key2} className="substat_title" style={{
+                                                                        textAlign: 'center',
+                                                                    }}>
+                                                                        {key2}
+                                                                    </div>
+                                                                </div>
+                                                                :
+                                                                <div key={key2} id={key2} style={{
+                                                                    textAlign: 'center'
+                                                                }}>{val2}</div>
+                                                    :
+                                                    <input key={val2} defaultValue={val2} onBlur={(e) => replaceStat(e.target.value, pos, key)} ></input>
                                                 )}
                                         </div>
                                     </div>

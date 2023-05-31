@@ -10,10 +10,22 @@ export const insertUser = gql`
    }
 `
 
+// export const insertCharacter = gql`
+// mutation InsertCharacter($character_id: String, $stats: jsonb, $system: String, $user_id: String, $template: String, $sheet_uuid: uuid!) {
+//   insert_characters(objects: [{character_id: $character_id, stats: $stats, system: $system, user_id:$user_id, template: $template, sheet_uuid: $sheet_uuid}], 
+//   on_conflict: {constraint: characters_character_uuid_key, update_columns: [stats, character_id]}) {
+//     returning {
+//       character_uuid
+//       character_id
+//       user_id
+//       sheet_uuid
+//     }
+//   }
+// }
+// `
 export const insertCharacter = gql`
 mutation InsertCharacter($character_id: String, $stats: jsonb, $system: String, $user_id: String, $template: String, $sheet_uuid: uuid!) {
-  insert_characters(objects: [{character_id: $character_id, stats: $stats, system: $system, user_id:$user_id, template: $template, sheet_uuid: $sheet_uuid}], 
-  on_conflict: {constraint: characters_character_uuid_key, update_columns: [stats, character_id]}) {
+  insert_characters(objects: [{character_id: $character_id, stats: $stats, system: $system, user_id:$user_id, template: $template, sheet_uuid: $sheet_uuid}]) {
     returning {
       character_uuid
       character_id
@@ -23,6 +35,7 @@ mutation InsertCharacter($character_id: String, $stats: jsonb, $system: String, 
   }
 }
 `
+
 export const updateCharacter = gql`
 mutation UpdateCharacter($character_uuid: uuid, $character_id: String, $stats: jsonb) {
   update_characters(where: {character_uuid: {_eq: $character_uuid}}, _set: {character_id: $character_id, stats: $stats}) {

@@ -11,6 +11,9 @@ import { useMutation } from "@apollo/client"
 import { getCustomSheet, getSpecificCharacter, getUserCharacters, getUserCustomsheets } from "../../graphql/queries"
 import { staticQuery } from "../../graphql/queryHooks"
 import { deleteCharacter, deleteCustomSheet, insertCharacter, insertCustomsheet, updateCharacter, updateCustomsheet } from "../../graphql/mutations"
+import { CredentialResponse, GoogleLogin } from '@react-oauth/google';
+import jwt_decode from "jwt-decode";
+
 
 /*
 check to see if templateData.system is Custom and if it is named
@@ -26,7 +29,6 @@ const checkSheetID = (user: string, sheetTemplate: CustomSheetData) => {
 }
 
 const mobileNavStyle: CSSProperties = {
-    // backgroundColor: `${theme.navColor}`,
     width: '60vw',
     position: 'fixed',
     top: 15,
@@ -54,11 +56,10 @@ const hiddenMobileNav: CSSProperties = {
 }
 
 const navStyle: CSSProperties = {
-    // backgroundColor: `${theme.navColor}`,
     width: '100%',
     position: 'fixed',
     maxHeight: 70,
-    zIndex: 1,
+    zIndex: 10,
     display: `flex`,
     flexDirection: `row`,
     justifyContent: 'space-between',
@@ -66,21 +67,19 @@ const navStyle: CSSProperties = {
 }
 
 interface NavBarProps {
-    // characterLoaded: boolean,
     showSharingModal: (val: boolean) => void
 }
 
 /*THINGS TO ADD
-1)Sign in and/or sign up
 2)change settings in auth0 dashboard to live url
 
 Custom Sheets
 1) json stored on hasura
 2) images stored on firebase
 */
-// characterLoaded,
+
 export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
-    const { theme, isMobile, character, setCharacter, dispatchTheme, userID, setUserID, token, setToken } = useContext(AppContext)
+    const { theme, isMobile, character, setCharacter, dispatchTheme, userID, setUserID, token, setToken, setSignedInWithGoogle } = useContext(AppContext)
     const { loginWithPopup, logout } = useAuth0();
     const [customSheetsList, setCustomSheetsList] = useState<string[]>([])//add newly created sheets to this
     const [characterList, setCharacterList] = useState<string[]>([])
@@ -97,7 +96,7 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
     image saved to firebase
     */
     const saveCustomSheet = async () => {
-        if (checkSheetID(userID as string, character.templateData)) {
+        if (checkSheetID(userID as string, character.templateData as CustomSheetData)) {
             /*
             save image to firebase
             */
@@ -107,7 +106,7 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                     'sharedWith': `${character.sharedWith && [...character.sharedWith as string[]]}`
                 }
             }
-            const customSheetImage = ref(storage, `users/${userID}/Custom_Sheets/${character.templateData.system_name}_sheet`)
+            const customSheetImage = ref(storage, `users/${userID}/Custom_Sheets/${(character.templateData as CustomSheetData).system_name}_sheet`)
             /*
             convert file path (blob:...) from objectURL passed from File selected from Canvas components to Blob
             to be stored in firebase. image from file path must be fetched, then converted.
@@ -126,14 +125,14 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                 /*
                 update existing custom sheet 
                 */
-                if (character.templateData.sheet_uuid) {
+                if ((character.templateData as CustomSheetData).sheet_uuid) {
                     let { data } = await updateCustom({
                         variables: {
-                            sheet_uuid: character.templateData.sheet_uuid,
+                            sheet_uuid: (character.templateData as CustomSheetData).sheet_uuid,
                             firebase_img_uri: firebase_snapshot,
                             sections: JSON.stringify(character.characterInfo.sections),
                             shared_with: JSON.stringify(character.sharedWith),
-                            system_id: character.templateData.system_name
+                            system_id: (character.templateData as CustomSheetData).system_name
                         }
                     })
                     console.log('updated sheet', data)
@@ -148,7 +147,7 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                             firebase_img_uri: firebase_snapshot,
                             sections: JSON.stringify(character.characterInfo.sections),
                             shared_with: JSON.stringify(character.sharedWith),
-                            system_id: character.templateData.system_name
+                            system_id: (character.templateData as CustomSheetData).system_name
                         }
                     })
                     // console.log('new custom sheet', data)
@@ -176,7 +175,7 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
     const saveCharacter = async () => {
         if (userID) {
             const characterName = (): string => {
-                if ((character as CharacterData<SheetData, string>).templateData.system === "Custom" && character.templateData.system_name) {
+                if ((character as CharacterData<SheetData, string>).templateData.system === "Custom" && (character.templateData as CustomSheetData).system_name) {
                     /*
                     check for name field in characterInfo.sections keys, else characterInfo.character_name
                     */
@@ -207,7 +206,10 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                         variables: {
                             character_uuid: character.character_uuid,
                             character_id: characterName(),
-                            stats: character.templateData.system === "Custom" ? JSON.stringify(character.characterInfo.sections) : JSON.stringify(character.characterInfo)
+                            stats: (character.templateData as CustomSheetData).system === "Custom" ? 
+                            JSON.stringify(character.characterInfo.sections) 
+                            : 
+                            JSON.stringify(character.characterInfo)
                         }
                     })
                     console.log('updated character', data)
@@ -221,14 +223,14 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                     let { data } = await addCharacter({
                         variables: {
                             character_id: characterName(),
-                            stats: character.templateData.system === "Custom" ? JSON.stringify(character.characterInfo.sections) : JSON.stringify(character.characterInfo),
-                            system: character.templateData.system === "Custom" ? character.templateData.system_name : character.templateData.system,
-                            template: character.templateData.system === "Custom" ? "Custom" : character.templateData.template,
+                            stats: (character.templateData as CustomSheetData).system === "Custom" ? JSON.stringify(character.characterInfo.sections) : JSON.stringify(character.characterInfo),
+                            system: (character.templateData as CustomSheetData).system === "Custom" ? (character.templateData as CustomSheetData).system_name : (character.templateData as CustomSheetData).system,
+                            template: (character.templateData as CustomSheetData).system === "Custom" ? "Custom" : (character.templateData as SheetData).template,
                             user_id: userID,
-                            sheet_uuid: character.templateData.sheet_uuid
+                            sheet_uuid: (character.templateData as CustomSheetData).sheet_uuid
                         }
                     })
-                    console.log('new character', data)
+
                     if (data !== undefined) {
                         setCharacter({ ...character, character_uuid: data.insert_characters.returning[0].character_uuid })
                         getCharacterList()
@@ -251,9 +253,10 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
     */
     const getCustomSheetList = async () => {
         try {
+            // console.log(process.env.REACT_APP_HASURA_ENDPOINT, token, userID)
             const { data } = await staticQuery(getUserCustomsheets, process.env.REACT_APP_HASURA_ENDPOINT as string, {
                 Authorization: `Bearer ${token}`,
-                "X-Hasura-User-Id": userID
+                "X-Hasura-User-Id": userID as string
             }, {
                 user_id: userID
             }
@@ -356,6 +359,7 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                 system_id: option
             },
                 'GetCustomSheet')
+            // console.log(data.custom_sheets[0].sections)
             /*
             creatorID, system, system_name -> character.templateData
             sections, image -> character.characterInfo
@@ -368,12 +372,14 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                     creatorID: data.custom_sheets[0].creator,
                     system: "Custom",
                     system_name: data.custom_sheets[0].system_id,
-                    sections: JSON.parse(data.custom_sheets[0].sections),
+                    // sections: JSON.parse(data.custom_sheets[0].sections),
+                    sections: data.custom_sheets[0].sections,
                     image: data.custom_sheets[0].firebase_img_uri,
                     sheet_uuid: userID === data.custom_sheets[0].creator ? data.custom_sheets[0].sheet_uuid : undefined
                 } as CustomSheetData,
                 characterInfo: {
-                    sections: JSON.parse(data.custom_sheets[0].sections),
+                    // sections: JSON.parse(data.custom_sheets[0].sections),
+                    sections: data.custom_sheets[0].sections,
                     image: data.custom_sheets[0].firebase_img_uri
                 },
                 character_uuid: undefined
@@ -382,7 +388,7 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
     }
 
     const removeCharacter = async () => {
-        // let { data } = 
+        let { data } = 
         await charDelete({
             variables: {
                 character_uuid: character.character_uuid
@@ -396,10 +402,10 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
     }
 
     const removeCustomSheet = async () => {
-        // let { data } = 
+        let { data } = 
         await customSheetDelete({
             variables: {
-                sheet_uuid: character.templateData.sheet_uuid
+                sheet_uuid: (character.templateData as CustomSheetData).sheet_uuid
             }
         })
         setCharacter({
@@ -416,7 +422,20 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
         logout()
     }
 
+    const googleSignIn = (e: CredentialResponse) => {
+        const decodedCredentials = jwt_decode(e.credential as string)
+        if(decodedCredentials){
+            setUserID((decodedCredentials as any).email)
+            setSignedInWithGoogle(true)
+        }
+    }
+
+    const googleSignInError = () => {
+        console.log('google sign in error')
+    }
+
     // console.log('header', character)
+    // console.log(userID)
     return (
         <>
             {isMobile &&
@@ -454,18 +473,30 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                 {!userID ?
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(2, 1fr)',
-                        marginLeft: 20
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        marginLeft: 20,
+                        gap: 10
                     }} >
                         <div id="sign_in_button_container">
                             <button id="sign_in_button"
                                 onClick={loginWithPopup}
                             >Sign In</button>
+                            {!isMobile && <div style={{
+                                gridColumn: '1/3',
+                            }}>You must be logged in to save character or custom sheets
+                            </div>
+                            }
                         </div>
 
-                        {!isMobile && <div style={{
-                            gridColumn: '1/3',
-                        }}>You must be logged in to save character or custom sheets</div>}
+                        <div id="google_button_wrapper"
+                        style={{
+                            gridColumn:'2',
+                            maxWidth:200
+                        }}
+                        >
+                            <GoogleLogin onSuccess={(e) => googleSignIn(e)} onError={() => googleSignInError()} />
+                        </div>
+
                     </div>
                     : <div className='login_button_container'
                         style={{
@@ -475,7 +506,7 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                             justifyContent: `space-evenly`,
                             alignItems: 'center'
                         }}>
-                        {checkSheetID(userID as string, character.templateData) &&
+                        {checkSheetID(userID as string, character.templateData as CustomSheetData) &&
                             <IconedButton
                                 style={{
                                     cursor: `pointer`,
@@ -598,18 +629,18 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                                 labelText={`Custom Sheets`}
                                 inputList={customSheetsList}
                                 className={`Custom Sheets`}
-                                defaultValue={character.templateData.system_name as string}
+                                defaultValue={(character.templateData as CustomSheetData).system_name as string}
                                 changeFunction={loadCustomSheet}
                                 onScrollEnd={() => getCustomSheetList()} />}
 
-                            {(!checkSheetID(userID, character.templateData) && character.templateData.creatorID) &&
+                            {(!checkSheetID(userID, character.templateData as CustomSheetData) && (character.templateData as CustomSheetData).creatorID) &&
                                 <div style={{
                                     width: isMobile ? 200 : 300,
                                     fontFamily: 'Roboto'
-                                }}>Created by {character.templateData.creatorID}</div>
+                                }}>Created by {(character.templateData as CustomSheetData).creatorID}</div>
                             }
                         </div>
-                        {checkSheetID(userID, character.templateData) &&
+                        {checkSheetID(userID, character.templateData as CustomSheetData) &&
                             <>
                                 <IconedButton
                                     style={{
@@ -710,6 +741,7 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                         <button onClick={signout}>Sign Out</button>
                     </div>
                 }
+                
                 {!isMobile &&
                     <div style={{
                         display: 'flex',
@@ -732,9 +764,9 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                             boxShadow: `0px 0px 2px`,
                             justifySelf: 'flex-end'
                         }}>
-                            <button id="dark_theme_button" className="dark theme_button" value='dark' onClick={(e) => dispatchTheme(e.currentTarget.value)}></button>
-                            <button id="light_theme_button" className="light theme_button" value='light' onClick={(e) => dispatchTheme(e.currentTarget.value)}></button>
-                            <button id="pink_theme_button" className="pink theme_button" value='pink' onClick={(e) => dispatchTheme(e.currentTarget.value)}></button>
+                            <button aria-label="dark theme" id="dark_theme_button" className="dark theme_button" value='dark' onClick={(e) => dispatchTheme(e.currentTarget.value)}></button>
+                            <button aria-label="light theme" id="light_theme_button" className="light theme_button" value='light' onClick={(e) => dispatchTheme(e.currentTarget.value)}></button>
+                            <button aria-label="pink theme" id="pink_theme_button" className="pink theme_button" value='pink' onClick={(e) => dispatchTheme(e.currentTarget.value)}></button>
                         </div>
                     </div>
                 }
