@@ -92,6 +92,7 @@ const WoD5Estyles: { [key: string]: CSSProperties } = {
         flexDirection: `row`,
         alignItems: `center`,
     },
+
     /*Power Table and Cell styles*/
     powers_container: {
         marginLeft: 85,
@@ -121,8 +122,6 @@ const WoD5Estyles: { [key: string]: CSSProperties } = {
         borderRight: 0,
         border: 0,
         backgroundColor: `#fcf5ed`,
-        // height: cellheight / (maxlevel + 1),
-        // width: cellwidth * (2 / 3) - 2
     },
     power_name: {
         padding: 0,
@@ -130,13 +129,7 @@ const WoD5Estyles: { [key: string]: CSSProperties } = {
         borderLeft: 0,
         borderRight: 0,
         backgroundColor: `#fcf5ed`,
-        // height: cellheight / (maxlevel + 1),
         borderBottom: `1px solid black`,
-        // padding: 0,
-        // borderTop: 0,
-        // borderLeft: 0,
-        // borderRight: 0,
-        // backgroundColor: `#fcf5ed`,
     },
     power_point:{
         borderBottom: `1px solid black`,
@@ -145,7 +138,6 @@ const WoD5Estyles: { [key: string]: CSSProperties } = {
         borderLeft: 0,
         borderRight: 0,
         backgroundColor: `#fcf5ed`,
-        // height: cellheight / (maxlevel + 1)
     },
     section_header: {
         textAlign: `center`,

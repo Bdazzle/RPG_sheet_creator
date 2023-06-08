@@ -36,12 +36,12 @@ recurrable?
 export const makeSheetObj = (statblock: any, objToAssign: object): object => {
     // console.log('makeSheet', statblock)
     for (let category in statblock) {
-        
+
         if (Array.isArray(statblock[category])) {
-            
-            if(!statblock[category].length){
+
+            if (!statblock[category].length) {
                 // console.log('makeSheet', category, statblock[category])
-                Object.assign(objToAssign, {[category] :[]})
+                Object.assign(objToAssign, { [category]: [] })
             } else {
                 const substats = (statblock[category] as string[]).reduce((acc: { [key: string]: string }, curr: string) => {
                     return { ...acc, [curr]: '' }
@@ -49,7 +49,7 @@ export const makeSheetObj = (statblock: any, objToAssign: object): object => {
                 // console.log(substats)
                 Object.assign(objToAssign, { [category]: { ...substats } })
             }
-            
+
         } else {
             let nest = { [category]: {} }
             Object.assign(objToAssign, nest)
@@ -87,18 +87,24 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
 
     useEffect(() => {
         const systemList = async () => {
-            if (token) {
-                let { data } = await staticQuery(getSystemsList, process.env.REACT_APP_HASURA_ENDPOINT as string, {
-                    Authorization: `Bearer ${token}`
-                }, {}, 'GetSystemsList')
+            try {
+                if (token) {
+                    let { data } = await staticQuery(getSystemsList, process.env.REACT_APP_HASURA_ENDPOINT as string, {
+                        Authorization: `Bearer ${token}`
+                        // "X-Hasura-User-Id": userID as string
+                    }, {}, 'GetSystemsList')
 
-                if (data) {
-                    /*
-                    always include "Custom" as first option for custom sheets
-                    */
-                    setSystems(["Custom", ...data.templates_games.map((sys: { system: string }) => sys.system)])
+                    if (data) {
+                        /*
+                        always include "Custom" as first option for custom sheets
+                        */
+                        setSystems(["Custom", ...data.templates_games.map((sys: { system: string }) => sys.system)])
+                    }
                 }
+            } catch (err) {
+                console.log('system list fetch fail', err)
             }
+
         }
         systemList()
     }, [token])
@@ -134,10 +140,11 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
             templateData: {
                 system: systemOption,
                 creatorID: userID!
-            }, characterInfo: {}
-        }) 
-        :
-        setCharacter({ templateData: { system: systemOption }, characterInfo: {} })
+            },
+            characterInfo: {}
+        })
+            :
+            setCharacter({ templateData: { system: systemOption }, characterInfo: {} })
     }
 
     /*
@@ -153,7 +160,7 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
     }, [gameData])
 
     const handleGameChange = async (val: string) => {
-        
+
         let { data } = await staticQuery(getGameSheet, process.env.REACT_APP_HASURA_ENDPOINT as string, {
             Authorization: `Bearer ${token}`
         }, {
@@ -168,16 +175,22 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
 
     return (
         <div style={{ width: '90vw', lineHeight: 1.5 }}>
-            <div>This is the <span className='page_route_text'>Creator</span> screen. <br />
+            <h2 className='page_route_text'
+                style={{
+                    marginBottom: 0
+                }}>
+                Creator
+            </h2>
+            <div style={{ lineHeight: 1.5 }}>This is the Creator screen. <br />
                 It's used to make selections for creating your own RPG character sheet or use a pre-existing character sheet template. <br />
 
-                The <Link to={'editor'} className="link_text"
+                The <Link to={'/editor'} className="link_text"
                     style={{
                         color: theme.color,
                         textDecoration: 'underline'
                     }}
                 >Editor</Link> screen is used to edit your custom character sheet from images you upload. <br />
-                The <Link to={'sheet'} className="link_text"
+                The <Link to={'/sheet'} className="link_text"
                     style={{
                         color: theme.color,
                         textDecoration: 'underline'
@@ -265,10 +278,10 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
                                             {
                                                 // savedTemplate.template === "Custom" ?
                                                 savedTemplate.template.includes("Custom") ?
-                                                    val.map((stat, index) => <input 
-                                                    key={stat} 
-                                                    defaultValue={stat} 
-                                                    onBlur={(e) => replaceStat(e.target.value, index, key)}>
+                                                    val.map((stat, index) => <input
+                                                        key={stat}
+                                                        defaultValue={stat}
+                                                        onBlur={(e) => replaceStat(e.target.value, index, key)}>
                                                     </input>)
                                                     : val.map(stat => <div key={stat}>{stat}</div>)
                                             }
@@ -332,8 +345,8 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
                                                                 <div key={key2} id={key2} style={{
                                                                     textAlign: 'center'
                                                                 }}>{val2}</div>
-                                                    :
-                                                    <input key={val2} defaultValue={val2} onBlur={(e) => replaceStat(e.target.value, pos, key)} ></input>
+                                                        :
+                                                        <input key={val2} defaultValue={val2} onBlur={(e) => replaceStat(e.target.value, pos, key)} ></input>
                                                 )}
                                         </div>
                                     </div>

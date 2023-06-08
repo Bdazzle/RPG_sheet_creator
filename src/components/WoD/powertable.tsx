@@ -2,7 +2,7 @@
 import React, { CSSProperties, useContext, useEffect, useState } from 'react';
 import { AppContext } from '../../AppContext';
 import { radioFill } from '../../functions/radioButtons';
-import { AddToCharacter, CharacterData, RemoveFromCharacter, SheetData } from '../../types/RPGtypes';
+import { AddToCharacter, RemoveFromCharacter, SheetData } from '../../types/RPGtypes';
 import { Radio } from '../buttons';
 
 export type Advantages = {
@@ -11,10 +11,6 @@ export type Advantages = {
     }
 }
 
-// export type Powers = {
-//     [key: string] : [string]
-// }
-
 export type TableStyles = {
     headerStyle?: CSSProperties,
     tableStyle?: CSSProperties
@@ -22,9 +18,6 @@ export type TableStyles = {
 
 export interface PowersTableProps {
     savedPowers: PowerLevels | string[]
-    // savedPowers: PowerLevels,
-    // savedPowers: Powers | { key: string | number, val:string }
-    // styles?: TableStyles,
     hasPips: boolean
     totalcells: number;
     powerType: string;
@@ -36,12 +29,7 @@ export interface PowersTableProps {
 
 export type PowerLevels = [string, string[]]
 
-// export type PowerLevels = {
-//     [key: string]: [string]
-// }
-
 export interface PowersCellsProps {
-    // savedPowers?: [string, PowerLevels] | string[]
     savedPowers?: PowerLevels | string[],
     hasPips: boolean
     maxlevel: number;
@@ -49,7 +37,6 @@ export interface PowersCellsProps {
     removePower: (attr: string) => void;
     cellheight: number;
     cellwidth: number;
-    // powerType?: string
 }
 //savedPowers.length()/totalcells for ex:Gifts or one big Powertable
 //set either max rows (ex: totalcells/2) for smaller width columns, or set columns (ex: totalcells/3) for additional cells that would run off sheet
@@ -61,8 +48,6 @@ export const PowersTable: React.FC<PowersTableProps> = ({ savedPowers, hasPips, 
     //divide gridWidth by totalcells/2, 2 in this case being amount of rows
     const gridWidth: number = 510
     const gridCellWidth: string = `${gridWidth / (totalcells / 2)}px `
-
-    // console.log('saved powers', savedPowers)
 
     useEffect(() => {
         if (hasPips) {
@@ -80,10 +65,7 @@ export const PowersTable: React.FC<PowersTableProps> = ({ savedPowers, hasPips, 
     hasPips: should add power title or level name to character.characterInfo[powertype][powerTitle] : [...levelNames]
     */
     const addPower = (levelNames: string[], powerTitle?: string) => {
-        // console.log('addPower', category, powerType, powerTitle, levelNames)
-        // if (levelNames) {
         if (hasPips) {
-            // const newPowers = [...character.characterInfo[powerType], levelNames]
             if (powerTitle) {
                 addToCharacter(levelNames, powerTitle, powerType)
             }
@@ -93,67 +75,11 @@ export const PowersTable: React.FC<PowersTableProps> = ({ savedPowers, hasPips, 
 
         }
         if (category) {
-            // const newPowers = [...character.characterInfo[category][powerType], levelNames]
             if (powerTitle) {
-                // addToCharacter(newPowers, powerTitle, powerType, category)
                 addToCharacter(levelNames, powerTitle, powerType, category)
             } else {
-                // addToCharacter(newPowers, powerType, category)
                 addToCharacter(levelNames, powerType, category)
             }
-
-            // }
-            //    powerTitle ? addToCharacter(levelName, powerTitle, powerType, category) : addToCharacter(levelName, powerType, category)
-
-            // setCharacter(() => {
-            //     const { characterInfo } = character;
-            //     const updatedCharacterInfo = { ...characterInfo };
-
-            //     if (!hasPips) {//ex: WoD Werewolf gifts : characterInfo['advantages']['gifts]
-            //         if (category) {
-            //             // console.log('addpower', updatedCharacterInfo[category!][powerType])
-            //             if (!updatedCharacterInfo[category][powerType]) {
-            //                 updatedCharacterInfo[category][powerType] = [levelName];
-            //                 // console.log('addpower', updatedCharacterInfo[category!][powerType])
-            //             } else {
-            //                 // console.log('addpower',category, powerType, updatedCharacterInfo[category][powerType])
-            //                 updatedCharacterInfo[category][powerType] = [
-            //                     ...updatedCharacterInfo[category][powerType],
-            //                     levelName,
-            //                 ];
-            //             }
-            //         }
-            //         else if (!updatedCharacterInfo[powerType]) {
-            //             updatedCharacterInfo[powerType] = [levelName];
-            //         } else {
-            //             updatedCharacterInfo[powerType] = [
-            //                 ...updatedCharacterInfo[powerType],
-            //                 levelName,
-            //             ];
-            //         }
-            //     }
-            //     else {
-            //         if (!updatedCharacterInfo[powerType]) {
-            //             updatedCharacterInfo[powerType] = {
-            //                 [powerTitle || '']: [levelName],
-            //             };
-            //         } else {
-            //             if (!updatedCharacterInfo[powerType][powerTitle || '']) {
-            //                 updatedCharacterInfo[powerType][powerTitle || ''] = [levelName];
-            //             } else {
-            //                 updatedCharacterInfo[powerType][powerTitle || ''] = [
-            //                     ...updatedCharacterInfo[powerType][powerTitle || ''],
-            //                     levelName,
-            //                 ];
-            //             }
-            //         }
-            //     }
-
-            //     return {
-            //         ...character,
-            //         characterInfo: updatedCharacterInfo,
-            //     };
-            // })
         }
 
     }
@@ -184,7 +110,6 @@ export const PowersTable: React.FC<PowersTableProps> = ({ savedPowers, hasPips, 
                     savedPowers ?
                         <PowersCells
                             savedPowers={hasPips ? Object.entries(savedPowers)[num] as PowerLevels : savedPowers as string[]}
-                            // savedPowers={savedPowers as PowerLevels | string[]}
                             key={'power' + num}
                             hasPips={hasPips}
                             maxlevel={maxlevels}
@@ -195,7 +120,6 @@ export const PowersTable: React.FC<PowersTableProps> = ({ savedPowers, hasPips, 
                         />
                         :
                         <PowersCells
-                            // power={num}
                             key={'power' + num}
                             hasPips={hasPips}
                             maxlevel={maxlevels}
@@ -310,7 +234,6 @@ const PowersCells: React.FC<PowersCellsProps> = ({ savedPowers, hasPips, maxleve
     return (
         <div key="power-cell-container" className="power-cell-container"
             style={
-                // (character.templateData as SheetData).template === "Vampire 5th Edition" ?
                 (character.templateData as SheetData).system === "World of Darkness 5th Edition" ?
                     {
                         ...templateStyle.power_cell_container,
@@ -320,11 +243,6 @@ const PowersCells: React.FC<PowersCellsProps> = ({ savedPowers, hasPips, maxleve
                     :
                     templateStyle.power_cell_container
             }>
-            {/* <div key={powerType + "title"}
-                style={templateStyle.section_header}
-                className="section_header">
-                {powerType.toUpperCase()}
-            </div> */}
             {
                 hasPips ?
                     <>
@@ -364,31 +282,6 @@ const PowersCells: React.FC<PowersCellsProps> = ({ savedPowers, hasPips, maxleve
                                 }
                             </div>
                         </div>
-                        {/* {(character.templateData as SheetData).template === "Werewolf The Apocalypse" &&
-                            <div>
-                                {
-                                    powerPoints.map(num =>
-                                        <input
-                                            defaultValue={savedPowers ? savedPowers![num] : ''}
-                                            name={powerName as string + String(num)}
-                                            key={"power point" + num}
-                                            className={"power-name"}
-                                            style={
-                                                (character.templateData as SheetData).template === "Vampire 5th Edition" ?
-                                                    {
-                                                        ...templateStyle.power_name,
-                                                        height: cellheight / (maxlevel + 1)
-                                                    }
-                                                    :
-                                                    templateStyle.power_name
-                                            }
-                                            onBlur={(e) => {onLevelNameChange( e.target.value, num)}}
-                                            // onBlur={(e) => { hasPips ? onLevelNameChange( e.target.value, num) : onNameInput(e.target.value) }}
-                                            >
-                                        </input>)
-                                }
-                            </div>
-                        } */}
                     </>
                     :
                     <div key="power_header" className="power_header"
@@ -401,8 +294,6 @@ const PowersCells: React.FC<PowersCellsProps> = ({ savedPowers, hasPips, maxleve
                                     key={"power point" + i}
                                     className={"power-name"}
                                     style={templateStyle.power_name}
-                                    // onBlur={(e) => { onNameInput(e.target.value) }}
-                                    // onBlur={(e) => { onLevelNameChange(e.target.value, i) }}
                                     onChange={(e) => { onLevelNameChange(e.target.value, i) }}
                                 >
 
@@ -424,20 +315,6 @@ const PowersCells: React.FC<PowersCellsProps> = ({ savedPowers, hasPips, maxleve
                         onBlur={(e) => onLevelNameChange(e.target.value, num)}>
                     </input>
                 )
-
-                // (character.templateData as SheetData).template === "Vampire 5th Edition" &&
-                // powerPoints.map(num =>
-                //     <input
-                //         defaultValue={powerLevels ? powerLevels[num] : ''}
-                //         name={powerName as string + String(num)}
-                //         key={"power point" + num}
-                //         className={"power-point"}
-                //         style={{
-                //             ...templateStyle.power_point,
-                //             height: cellheight / (maxlevel + 1)
-                //         }} onBlur={(e) => onLevelNameChange(num, e.target.value)}>
-
-                //     </input>)
             }
         </div >
     )

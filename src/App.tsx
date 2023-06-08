@@ -17,7 +17,7 @@ import { insertShares, insertUser } from './graphql/mutations';
 import { staticQuery } from './graphql/queryHooks';
 import { Routes } from 'react-router';
 import { getExistingUser } from './graphql/queries';
-import { googleLogout } from '@react-oauth/google';
+// import { googleLogout } from '@react-oauth/google';
 // import dotenv from 'dotenv'
 
 // dotenv.config()
@@ -79,7 +79,7 @@ useEffect(() =>{
       validateUser()
       setUserID(user!.email)
       if(signedInWithGoogle) {
-        googleLogout()
+        // googleLogout()
         setSignedInWithGoogle(false)
       }
       // console.log('auth0 user', user)
@@ -269,8 +269,6 @@ useEffect(() =>{
               fontStyle: 'normal',
               fontWeight: 'normal',
               fontSize: isMobile ? '24px' : '36px',
-              // lineHeight: '24px',
-              // paddingBottom: 15,
             }}>RPG sheet creator</h1>
             <Link to={currentPath === 'creator' ? "editor" :
               currentPath === 'editor' ? "creator"

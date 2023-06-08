@@ -1,8 +1,6 @@
-import { SheetData, CharacterData } from "../types/RPGtypes";
 
 interface StatLayers {
     val: string | number | object,
-    // category: string, //layer 1
     statName: string //bottom layer
 }
 
@@ -10,10 +8,6 @@ interface WoDStat extends StatLayers {
     category?: string, //layer 1
     subCategory?: string, //layer 2
 }
-
-// interface WoD5Estat extends StatLayers {
-//     category: string
-// }
 
 export type WoDStatAction = {
     type: string,

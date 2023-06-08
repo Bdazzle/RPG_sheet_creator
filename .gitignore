@@ -24,6 +24,7 @@
 /backend
 src/World of Darkness
 *.rules
+/functions
 
 npm-debug.log*
 yarn-debug.log*

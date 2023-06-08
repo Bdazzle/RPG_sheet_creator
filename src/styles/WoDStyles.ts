@@ -35,13 +35,6 @@ const WoDStyles: { [key: string]: CSSProperties } = {
         justifyContent: `space-between`,
         height: 60,
     },
-    // attributes_points: {
-    //     fontFamily: `'Cormorant', serif`,
-    //     fontSize: `16px`,
-    //     display: `flex`,
-    //     flexDirection: `row`,
-    //     justifyContent: `space-between`,
-    // },
     points: {
         fontFamily: `'Cormorant', serif`,
         fontSize: `16px`,
@@ -121,10 +114,6 @@ const WoDStyles: { [key: string]: CSSProperties } = {
         flexDirection: "column",
         borderBottom: "1px solid black"
     },
-    // powers_container :{
-    //     marginLeft: 85,
-    //     display: "grid",
-    // },
     power_name: {
         borderBottom: `1px solid black`,
         padding: 0,
@@ -138,7 +127,6 @@ const WoDStyles: { [key: string]: CSSProperties } = {
         borderLeft: 0,
         borderRight: 0,
         border: 0,
-        // width: cellwidth * (2 / 3)
     }
 
 }

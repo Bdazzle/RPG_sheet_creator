@@ -4,15 +4,18 @@ import { BurgerMenu } from "./burgerbutton"
 import { IconedButton } from "../IconedButton"
 import { DropDownMenu } from "../dropdownmenu"
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage"
-import { storage } from "../../firebase/config"
+import { auth, firebaseConfig, functions, storage } from "../../firebase/config"
 import { CharacterSheet, Sections, SheetData, CharacterData, CustomSheetData } from "../../types/RPGtypes"
-import { useAuth0 } from "@auth0/auth0-react"
+// import { useAuth0 } from "@auth0/auth0-react"
 import { useMutation } from "@apollo/client"
 import { getCustomSheet, getSpecificCharacter, getUserCharacters, getUserCustomsheets } from "../../graphql/queries"
 import { staticQuery } from "../../graphql/queryHooks"
 import { deleteCharacter, deleteCustomSheet, insertCharacter, insertCustomsheet, updateCharacter, updateCustomsheet } from "../../graphql/mutations"
-import { CredentialResponse, GoogleLogin } from '@react-oauth/google';
 import jwt_decode from "jwt-decode";
+import { httpsCallable } from 'firebase/functions';
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
+import GoogleSigninButton from "./goolgeButton"
 
 
 /*
@@ -79,8 +82,8 @@ Custom Sheets
 */
 
 export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
-    const { theme, isMobile, character, setCharacter, dispatchTheme, userID, setUserID, token, setToken, setSignedInWithGoogle } = useContext(AppContext)
-    const { loginWithPopup, logout } = useAuth0();
+    const { theme, isMobile, character, setCharacter, dispatchTheme, userID, setUserID, token, setToken, setSignedInWithGoogle, signedInWithGoogle } = useContext(AppContext)
+    // const { loginWithPopup, logout } = useAuth0();
     const [customSheetsList, setCustomSheetsList] = useState<string[]>([])//add newly created sheets to this
     const [characterList, setCharacterList] = useState<string[]>([])
     const [showMenu, setShowMenu] = useState<boolean>(false)
@@ -90,7 +93,10 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
     const [updateCustom] = useMutation(updateCustomsheet)
     const [charDelete] = useMutation(deleteCharacter)
     const [customSheetDelete] = useMutation(deleteCustomSheet)
-
+    // if(token) {
+    //     const test = jwt_decode(token)
+    //     console.log('hasura test token', test)
+    //   }
     /*
     sheet text/json or w/e (anything other than image) saved to hasura
     image saved to firebase
@@ -206,10 +212,10 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                         variables: {
                             character_uuid: character.character_uuid,
                             character_id: characterName(),
-                            stats: (character.templateData as CustomSheetData).system === "Custom" ? 
-                            JSON.stringify(character.characterInfo.sections) 
-                            : 
-                            JSON.stringify(character.characterInfo)
+                            stats: (character.templateData as CustomSheetData).system === "Custom" ?
+                                JSON.stringify(character.characterInfo.sections)
+                                :
+                                JSON.stringify(character.characterInfo)
                         }
                     })
                     console.log('updated character', data)
@@ -253,7 +259,6 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
     */
     const getCustomSheetList = async () => {
         try {
-            // console.log(process.env.REACT_APP_HASURA_ENDPOINT, token, userID)
             const { data } = await staticQuery(getUserCustomsheets, process.env.REACT_APP_HASURA_ENDPOINT as string, {
                 Authorization: `Bearer ${token}`,
                 "X-Hasura-User-Id": userID as string
@@ -280,7 +285,6 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
     }, [token])
 
     const getCharacterList = async () => {
-        if (token) { setToken(token) }
         const userCharacters = await staticQuery(getUserCharacters, process.env.REACT_APP_HASURA_ENDPOINT as string, {
             Authorization: `Bearer ${token}`
         }, {
@@ -296,6 +300,7 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
     load character will only be called after app loads, so will have access to token that is set in this file from getCharacterList
     */
     const loadCharacter = async (characterName: string) => {
+
         if (characterName) {
             const specificChar = await staticQuery(getSpecificCharacter, process.env.REACT_APP_HASURA_ENDPOINT as string, {
                 Authorization: `Bearer ${token}`
@@ -334,7 +339,7 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                         templateData: {
                             system: system,
                             template: template,
-                            sheet_url: specificChar.data.characters[0].characterTosheet.sheet_url
+                            sheet_url: specificChar.data.characters[0].characterTosheet.sheet_url,
                         } as SheetData,
                         characterInfo: JSON.parse(stats),
                         character_uuid: character_uuid,
@@ -388,12 +393,12 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
     }
 
     const removeCharacter = async () => {
-        let { data } = 
-        await charDelete({
-            variables: {
-                character_uuid: character.character_uuid
-            }
-        })
+        let { data } =
+            await charDelete({
+                variables: {
+                    character_uuid: character.character_uuid
+                }
+            })
         setCharacter({
             templateData: {},
             characterInfo: {},
@@ -402,12 +407,12 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
     }
 
     const removeCustomSheet = async () => {
-        let { data } = 
-        await customSheetDelete({
-            variables: {
-                sheet_uuid: (character.templateData as CustomSheetData).sheet_uuid
-            }
-        })
+        let { data } =
+            await customSheetDelete({
+                variables: {
+                    sheet_uuid: (character.templateData as CustomSheetData).sheet_uuid
+                }
+            })
         setCharacter({
             templateData: {},
             characterInfo: {},
@@ -419,23 +424,49 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
         setUserID(undefined)
         setCharacter({ templateData: {}, characterInfo: {} })
         setCustomSheetsList([])
-        logout()
+        // logout()// for Auth0
+        auth.signOut()
+        setToken(undefined)
+        setSignedInWithGoogle(false)
     }
 
-    const googleSignIn = (e: CredentialResponse) => {
-        const decodedCredentials = jwt_decode(e.credential as string)
-        if(decodedCredentials){
-            setUserID((decodedCredentials as any).email)
-            setSignedInWithGoogle(true)
+    firebase.initializeApp(firebaseConfig)
+
+    const googleSignIn = async () => {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        try {
+            const result = await firebase.auth().signInWithPopup(provider);
+            const token = await result.user!.getIdToken();
+            const decodedCredentials = jwt_decode(token as string) as any
+            if (!decodedCredentials["https://hasura.io/jwt/claims"]) {
+                console.log('no hasura token')
+                const getRole = httpsCallable(functions, 'role');
+
+                if ((decodedCredentials as any).email) {
+                    const data = await getRole({ email: (decodedCredentials as any).email })
+                    // console.log('current', auth.currentUser)
+                    // console.log('role returned', data)
+                }
+            } else {
+                // console.log('decoded token', decodedCredentials)
+
+                setToken(token)
+                if (decodedCredentials) {
+                    // setGoogleData({
+                    //     email: decodedCredentials.email,
+                    //     name: decodedCredentials.name,
+                    //     picture: decodedCredentials.picture
+                    // })
+                    setUserID((decodedCredentials as any).email)
+                    setSignedInWithGoogle(true)
+                }
+            }
+            // console.log('User token:', token);
+        } catch (err) {
+            console.log(err)
         }
     }
 
-    const googleSignInError = () => {
-        console.log('google sign in error')
-    }
-
-    // console.log('header', character)
-    // console.log(userID)
     return (
         <>
             {isMobile &&
@@ -477,26 +508,14 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                         marginLeft: 20,
                         gap: 10
                     }} >
-                        <div id="sign_in_button_container">
-                            <button id="sign_in_button"
-                                onClick={loginWithPopup}
-                            >Sign In</button>
-                            {!isMobile && <div style={{
-                                gridColumn: '1/3',
-                            }}>You must be logged in to save character or custom sheets
+                        <div id="sign_in_button_container"
+                        style={{
+                            gridColumn: '2/4',
+                        }}>
+                            {!isMobile && <div >You must be logged in to save characters or custom sheets
                             </div>
                             }
                         </div>
-
-                        <div id="google_button_wrapper"
-                        style={{
-                            gridColumn:'2',
-                            maxWidth:200
-                        }}
-                        >
-                            <GoogleLogin onSuccess={(e) => googleSignIn(e)} onError={() => googleSignInError()} />
-                        </div>
-
                     </div>
                     : <div className='login_button_container'
                         style={{
@@ -738,10 +757,10 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                                 />
                             </>
                         }
-                        <button onClick={signout}>Sign Out</button>
+                        {/* <button onClick={signout}>Sign Out</button> */}
                     </div>
                 }
-                
+                <GoogleSigninButton onSignIn={googleSignIn} onSignOut={signout} />
                 {!isMobile &&
                     <div style={{
                         display: 'flex',
@@ -774,4 +793,8 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
             </nav>
         </>
     )
+}
+
+function setGoogleData(arg0: {}) {
+    throw new Error("Function not implemented.")
 }

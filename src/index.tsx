@@ -6,7 +6,6 @@ import reportWebVitals from './reportWebVitals';
 import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink, ApolloLink } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
-import { GoogleOAuthProvider } from '@react-oauth/google';
 
 /*
 JWT token custom claims are accessible through Auth0 console -> Actions -> Flows -> Login -> hasura-claims
@@ -25,6 +24,7 @@ const AuthApolloProvider: React.FC = ({ children }) => {
 
   const authLink = setContext(async () => {
     const token = await getAccessTokenSilently().catch((err) => console.log(err))
+    
     return {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -55,18 +55,16 @@ root.render(
   <React.StrictMode>
     <Auth0Provider
       domain={process.env.REACT_APP_AUTH0_DOMAIN as string}
-      clientId={process.env.REACT_APP_AUTH0_CLIENT_ID as string}
+      clientId={"qzU5ssLKwmV6MhOmVTlqYtwPnFUIln29"}
       redirectUri={`http://localhost:3000/`}//change this to live url before deploy
       // redirectUri={`https://rpgsheetgenerator.web.app/`}
       audience={"rpgsheetcreator"}
       useRefreshTokens={true}
     >
       <AuthApolloProvider>
-        <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENTID as string}>
           <AppProvider >
             <App />
           </AppProvider >
-        </GoogleOAuthProvider>
       </AuthApolloProvider>
     </Auth0Provider>
   </React.StrictMode>

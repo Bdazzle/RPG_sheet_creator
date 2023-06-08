@@ -23,18 +23,24 @@ export const SheetScreen: React.FC<CharacterSheetTemplate> = ({ setPath }) => {
 
   return (
     <>
-      <div style={{ lineHeight: 1.5 }}>This is the <span className='page_route_text'>Sheet</span> screen. <br />
+      <h2 className='page_route_text'
+        style={{
+          marginBottom: 0
+        }}>
+        Sheet
+      </h2>
+      <div style={{ lineHeight: 1.5 }}>This is the Sheet screen. <br />
         It's used to make changes to your character as you play. <br />
-        The <Link to={'creator'} className="link_text" 
-        style={{ 
-          color: theme.color,
-          textDecoration: 'underline'
-        }}
+        The <Link to={'/creator'} className="link_text"
+          style={{
+            color: theme.color,
+            textDecoration: 'underline'
+          }}
         > Creator </Link> screen is used to make selections for creating your own RPG character sheet or use a pre-existing character sheet template.<br />
-        The <Link to={'editor'} className="link_text" 
-        style={{ 
-          color: theme.color,
-          textDecoration: 'underline'
+        The <Link to={'/editor'} className="link_text"
+          style={{
+            color: theme.color,
+            textDecoration: 'underline'
           }}>Editor</Link> screen is used to edit your custom character sheet from images you upload.
       </div>
       {/* {sheet.system === "Custom" &&
@@ -48,7 +54,7 @@ export const SheetScreen: React.FC<CharacterSheetTemplate> = ({ setPath }) => {
           <div key="sheet" id="sheet" style={{ position: "absolute", top: 20, minWidth: '672px', minHeight: '869px', color: 'black' }}>
             {
               (character.templateData as SheetData).system === "World of Darkness 5th Edition" ?
-                <WoD5EOverlay game={(character.templateData as SheetData).template as string} ></WoD5EOverlay> 
+                <WoD5EOverlay game={(character.templateData as SheetData).template as string} ></WoD5EOverlay>
                 :
                 (character.templateData as SheetData).system === "World of Darkness" ?
                   <WoDOverlay game={(character.templateData as SheetData).template as string} ></WoDOverlay>

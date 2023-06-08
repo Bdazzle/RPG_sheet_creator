@@ -1,8 +1,7 @@
 import React, { createContext, CSSProperties, useEffect, useReducer, useState } from "react";
 import { SheetData, CharacterData, CustomSheetData, SheetTypes, SheetStats } from "./types/RPGtypes";
 import { templateStyleReducer, themeReducer, ThemeVars } from "./reducers/styleReducers";
-import { WoD5EdefaultTemplates } from './World of Darkness/templateDefaults'
-import { makeSheetObj } from "./pages/sheet_creator";
+
 // import { makeSheetObj } from "./functions/makeSheets";
 // import { makeSheetObj } from "./pages/sheet_creator";
 
@@ -23,7 +22,15 @@ export interface AppContextProps {
   token: string | void,
   templateStyle: { [key: string]: CSSProperties },
   replaceStat: (newVal: string, position: number, statType: keyof SheetStats) => void
+  // googleData: {[key: string]: string},
+  // setGoogleData: React.Dispatch<React.SetStateAction<{[key: string]: string}>>
 }
+
+// type UsedGoogleData = {
+//   email : string;
+//   name : string;
+//   picture : string;
+// }
 
 export const AppContext = createContext({} as AppContextProps)
 
@@ -47,6 +54,28 @@ export const AppProvider: React.FC = ({ children }) => {
   const [userID, setUserID] = useState<string>()
   const [token, setToken] = useState<string | void>()
   const [signedInWithGoogle, setSignedInWithGoogle] = useState<boolean>(false)
+  // const [googleData, setGoogleData] = useState<UsedGoogleData | {}>({})
+  
+  // useEffect(() =>{
+  //   if(token && userID){
+      
+  //     // const googleValidation = async() =>{
+  //     //   try{
+  //     //     // const authUser = await auth.signInWithEmailAndPassword(userID, 'dummyPassword');
+  //     //     console.log(auth)
+  //     //   } catch(e) {
+  //     //     console.log('error', e)
+  //     //   }
+  //     //   // const googleToken = getAuth().createCustomToken
+        
+  //     // }
+  //     // googleValidation()
+      
+  //   //   signInWithCustomToken(auth, token).then(userCredentials => console.log('google creds', userCredentials))
+  //   // console.log('auth0 token', jwt_decode(token))
+  //   }
+    
+  // },[token])
 
   useEffect(() => {
     if ((character.templateData as SheetData).template) {
@@ -88,14 +117,12 @@ export const AppProvider: React.FC = ({ children }) => {
         stat_block: { ...((character.templateData as SheetData).stat_block as SheetStats), [statType]: newStatArray }
       }
     })
-    
-    // console.log(`replace ${statType} with ${newVal} at ${position}`)
-    // console.log(newStatArray)
   }
   
-console.log('chracter', character)
-// console.log('tempalte data',(character.templateData as SheetData))
+// console.log('chracter', character)
   return <AppContext.Provider value={{
+    // googleData: googleData,
+    // setGoogleData: setGoogleData,
     signedInWithGoogle: signedInWithGoogle,
     setSignedInWithGoogle: setSignedInWithGoogle,
     theme: theme,
