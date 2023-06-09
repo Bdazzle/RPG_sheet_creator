@@ -38,6 +38,7 @@ export const DropDownMenu: React.FC<DropMenu> = ({ inputList, className, changeF
             onScrollEnd && onScrollEnd()
         }
     }
+
     return (
         <div style={parentStyles}>
             <div>{labelText}</div>
@@ -73,6 +74,8 @@ export const DropDownMenu: React.FC<DropMenu> = ({ inputList, className, changeF
             {
             focused &&
                 <div className={`menu-container${theme.scheme}`} style={{
+                    scrollbarColor: `${theme.scrollColor} ${theme.backgroundColor}`,
+                    scrollbarWidth: 'thin',
                     overflow: focused ? 'none' : 'hidden scroll',
                     alignContent: 'center',
                     position:'absolute',

@@ -23,12 +23,13 @@ export const CheckBox: React.FC<Box> = ({ checkStat, value, stat }) => {
             className="modern-checkbox-container"
             onClick={() => handleClick()}>
             <div key={stat + value + `checkbox-outer`}
-                className={`${stat.split(' ').join('') + value} checkbox-outer-square ${!selected && "unselected"}`}>
+                className={`${stat.split(' ').join('') + value} checkbox-outer-square ${!selected && "unselected"}`}
+            >
                 <div key={stat + value + `checkbox-inner`}
                     className={`${stat.split(' ').join('') + value}inner checkbox-inner-square ${!selected && "unselected-square"}`}
-                    />
+                />
             </div>
-        </div>
+        </div >
     )
 }
 

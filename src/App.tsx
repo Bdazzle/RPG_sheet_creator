@@ -7,7 +7,7 @@ import { SheetScreen } from "./pages/sheetScreen"
 import { BrowserRouter as Router, Link, Route } from "react-router-dom";
 import CanvasEditor from "./CanvasEditor/CanvasEditor"
 import { SheetEditor } from "./pages/sheet_editor"
-import { Sections, SheetData, CharacterData, SheetStats, CustomSheetData, SheetTypes } from './types/RPGtypes.d.js'
+import { Sections, SheetData, CharacterData, CustomSheetData, SheetTypes } from './types/RPGtypes.d.js'
 import { AppContext } from './AppContext';
 import { IconedButton } from './components/IconedButton';
 import { useDebouncedCallback } from 'use-debounce';
@@ -17,14 +17,25 @@ import { insertShares, insertUser } from './graphql/mutations';
 import { staticQuery } from './graphql/queryHooks';
 import { Routes } from 'react-router';
 import { getExistingUser } from './graphql/queries';
-// import { googleLogout } from '@react-oauth/google';
-// import dotenv from 'dotenv'
+import { auth } from './firebase/config';
 
-// dotenv.config()
-
+const headerStyle: CSSProperties = {
+  display: 'flex',
+  justifyContent: 'center',
+  alignContent: 'center',
+  alignItems: 'center',
+  marginBottom: '20px',
+}
+const mobileHeaderStyle: CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-around',
+  alignContent: 'center',
+  alignItems: 'center',
+  marginBottom: '20px',
+}
 /*
 App Login/Save flow:
-1)OAth2, get user email
+1)OAth2/Google, get user email
 2)user email as userID
 3)getCustomSheets, getsharedCustomSheets, getCharacterList
 */
@@ -51,21 +62,20 @@ useEffect(() =>{
   }
 },[character.characterInfo.character_name])
 
-/* remove this useEffect, make normal function so that it doesn't trigger when signed in with Google */
+/* 
+used for Auth0
+remove this useEffect, make normal function so that it doesn't trigger when signed in with Google 
+*/
   useEffect(() => {
     if (user) {
-      // console.log('auth0 user', user)
-
       let validateUser = async () => {
         const token = await getAccessTokenSilently().catch((err) => console.log(err))
         if (token) { setToken(token) }
-        // console.log(token)
         const existingUser = await staticQuery(getExistingUser, process.env.REACT_APP_HASURA_ENDPOINT as string, {
           Authorization: `Bearer ${token}`
         }, {
           email: user.email
         }, "GetExistingUser")
-        // console.log('existing user', existingUser)
 
         if (existingUser.data.users.length === 0) {
           addUser({
@@ -79,10 +89,9 @@ useEffect(() =>{
       validateUser()
       setUserID(user!.email)
       if(signedInWithGoogle) {
-        // googleLogout()
+        auth.signOut()
         setSignedInWithGoogle(false)
       }
-      // console.log('auth0 user', user)
     }
 
   }, [user])
@@ -164,30 +173,9 @@ useEffect(() =>{
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const headerStyle: CSSProperties = {
-    display: 'flex',
-    justifyContent: 'center',
-    alignContent: 'center',
-    alignItems: 'center',
-    marginBottom: '20px',
-  }
-  const mobileHeaderStyle: CSSProperties = {
-    display: 'flex',
-    justifyContent: 'space-around',
-    alignContent: 'center',
-    alignItems: 'center',
-    marginBottom: '20px',
-  }
-
-  // if(character.characterInfo.sections){
-  //   console.log(character.characterInfo.sections.value)
-  // }
- 
-
   return (
     <>
       <Navbar
-        // characterLoaded={character!.characterInfo ? true : false}
         showSharingModal={setshowSharingModal}
       />
       {isMobile &&

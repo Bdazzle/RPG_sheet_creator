@@ -73,14 +73,6 @@ interface NavBarProps {
     showSharingModal: (val: boolean) => void
 }
 
-/*THINGS TO ADD
-2)change settings in auth0 dashboard to live url
-
-Custom Sheets
-1) json stored on hasura
-2) images stored on firebase
-*/
-
 export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
     const { theme, isMobile, character, setCharacter, dispatchTheme, userID, setUserID, token, setToken, setSignedInWithGoogle, signedInWithGoogle } = useContext(AppContext)
     // const { loginWithPopup, logout } = useAuth0();
@@ -93,10 +85,7 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
     const [updateCustom] = useMutation(updateCustomsheet)
     const [charDelete] = useMutation(deleteCharacter)
     const [customSheetDelete] = useMutation(deleteCustomSheet)
-    // if(token) {
-    //     const test = jwt_decode(token)
-    //     console.log('hasura test token', test)
-    //   }
+    
     /*
     sheet text/json or w/e (anything other than image) saved to hasura
     image saved to firebase
@@ -156,7 +145,7 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                             system_id: (character.templateData as CustomSheetData).system_name
                         }
                     })
-                    // console.log('new custom sheet', data)
+                    
                     if (data !== undefined) {
                         setCharacter({
                             ...character,
@@ -201,7 +190,7 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
             }
 
             if (characterName()) {
-                // console.log('character',character.templateData.sheet_uuid)
+                
                 /*
                 update existing character
                 stats different for template vs custom sheet
@@ -242,7 +231,7 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                         getCharacterList()
                         // setCharacterList([...characterList, data.character_id])
                     }
-                    // console.log('new character', data)
+                    
                 }
 
             } else {
@@ -364,7 +353,7 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                 system_id: option
             },
                 'GetCustomSheet')
-            // console.log(data.custom_sheets[0].sections)
+            
             /*
             creatorID, system, system_name -> character.templateData
             sections, image -> character.characterInfo
@@ -377,13 +366,11 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                     creatorID: data.custom_sheets[0].creator,
                     system: "Custom",
                     system_name: data.custom_sheets[0].system_id,
-                    // sections: JSON.parse(data.custom_sheets[0].sections),
                     sections: data.custom_sheets[0].sections,
                     image: data.custom_sheets[0].firebase_img_uri,
                     sheet_uuid: userID === data.custom_sheets[0].creator ? data.custom_sheets[0].sheet_uuid : undefined
                 } as CustomSheetData,
                 characterInfo: {
-                    // sections: JSON.parse(data.custom_sheets[0].sections),
                     sections: data.custom_sheets[0].sections,
                     image: data.custom_sheets[0].firebase_img_uri
                 },
@@ -444,8 +431,7 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
 
                 if ((decodedCredentials as any).email) {
                     const data = await getRole({ email: (decodedCredentials as any).email })
-                    // console.log('current', auth.currentUser)
-                    // console.log('role returned', data)
+                    console.log('role returned', data)
                 }
             } else {
                 // console.log('decoded token', decodedCredentials)
@@ -757,6 +743,7 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
                                 />
                             </>
                         }
+                        {/* used for Auth0*/}
                         {/* <button onClick={signout}>Sign Out</button> */}
                     </div>
                 }
@@ -795,6 +782,3 @@ export const Navbar: React.FC<NavBarProps> = ({ showSharingModal }) => {
     )
 }
 
-function setGoogleData(arg0: {}) {
-    throw new Error("Function not implemented.")
-}

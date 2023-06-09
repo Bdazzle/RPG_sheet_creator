@@ -27,7 +27,7 @@ export const SheetScreen: React.FC<CharacterSheetTemplate> = ({ setPath }) => {
         style={{
           marginBottom: 0
         }}>
-        Sheet
+        Character Sheet
       </h2>
       <div style={{ lineHeight: 1.5 }}>This is the Sheet screen. <br />
         It's used to make changes to your character as you play. <br />
@@ -50,8 +50,22 @@ export const SheetScreen: React.FC<CharacterSheetTemplate> = ({ setPath }) => {
         </>
       } */}
       {(character.templateData as SheetData | CustomSheetData).system !== "Custom" ?
-        <div style={{ height: '100vh', width: '100vw', position: "relative", backgroundSize: "100%", background: `url(${(character.templateData as SheetData).sheet_url as string}) no-repeat ` }}>
-          <div key="sheet" id="sheet" style={{ position: "absolute", top: 20, minWidth: '672px', minHeight: '869px', color: 'black' }}>
+        <div style={{
+          height: '100vh',
+          width: '100vw',
+          position: "relative",
+          backgroundSize: "100%",
+          background: `url(${(character.templateData as SheetData).sheet_url as string}) no-repeat `
+        }}>
+          <div key="sheet" id="sheet"
+          itemScope itemType="http://schema.org/CreativeWork"
+            style={{
+              position: "absolute",
+              top: 20,
+              minWidth: '672px',
+              minHeight: '869px',
+              color: 'black'
+            }}>
             {
               (character.templateData as SheetData).system === "World of Darkness 5th Edition" ?
                 <WoD5EOverlay game={(character.templateData as SheetData).template as string} ></WoD5EOverlay>

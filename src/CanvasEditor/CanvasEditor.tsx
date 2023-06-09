@@ -1,5 +1,5 @@
 import React, { CSSProperties, useContext, useEffect, useRef, useState } from 'react';
-import './CanvasEditor.css';
+// import './CanvasEditor.css';
 import { redrawCanvas } from './Redraw'
 import { jsPDF } from 'jspdf'
 import { AppContext } from '../AppContext';
@@ -44,7 +44,12 @@ interface CanvasEditorProps {
   system_name?: string;
 }
 
-const SelectionInputs: React.FC<LabelInputs<Label>> = ({ 
+const statDivisionStyle: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column'
+}
+
+const SelectionInputs: React.FC<LabelInputs<Label>> = ({
   defaultValInput, defaultLabel, defaultStyle, defaultFontSize, index, editorMode,
   handleValue, handleLabel, handleStatStyle, handleShowText, handleDelete, handleColor, handleFontSize }) => {
   const [value, setValue] = useState<StatValues>(defaultValInput)
@@ -53,22 +58,22 @@ const SelectionInputs: React.FC<LabelInputs<Label>> = ({
   const [fontSize, setFontSize] = useState<number>()
   const [color, setColor] = useState<string>('')
 
-  useEffect(()=>{
+  useEffect(() => {
     setValue(defaultValInput)
     setStatStyle(defaultStyle)
     setFontSize(defaultFontSize)
-  },[])
+  }, [])
 
   useEffect(() => {
     handleValue(value as StatValues, defaultLabel)
   }, [value, defaultLabel, handleValue])
 
-  const deleteButtonClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) : void => {
+  const deleteButtonClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
     e.preventDefault()
     handleDelete(defaultLabel, index)
   }
 
-  const onStyleChange = (option: string, label: Label) : void => {
+  const onStyleChange = (option: string, label: Label): void => {
     setStatStyle(option)
     handleStatStyle(label, option)
   }
@@ -76,30 +81,42 @@ const SelectionInputs: React.FC<LabelInputs<Label>> = ({
   /*
   will only fire if stat style is NOT text
   */
-  const handleTextVisibility = () : void => {
+  const handleTextVisibility = (): void => {
     setShowText(!showText)
     handleShowText(defaultLabel, !showText)
   }
 
-  const handleColorChange = (val: string) : void => {
+  const handleColorChange = (val: string): void => {
     setColor(val)
     handleColor(defaultLabel, val)
   }
 
-const handleFontSizeChange = (val: number) : void => { 
-  setFontSize(val)
-  handleFontSize(defaultLabel, val)
-}
+  const handleFontSizeChange = (val: number): void => {
+    setFontSize(val)
+    handleFontSize(defaultLabel, val)
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: editorMode === 'editor' ? 'column' : 'row' }} className="assignment_input_container" id={`${defaultLabel}container`} key={`${defaultLabel}container${index}`}>
-      <div className="stat_division">
+      <div className="stat-division"
+        style={statDivisionStyle}
+      >
         <label>Stat</label>
-        <input defaultValue={defaultLabel} key={`${defaultLabel}label${index}`} onBlur={(e) => handleLabel((e.target as HTMLInputElement).value, index)} type="text" className="label_inputs"></input>
+        <input defaultValue={defaultLabel}
+          // key={`${defaultLabel}label${index}`} 
+          onBlur={(e) => handleLabel((e.target as HTMLInputElement).value, index)}
+          type="text"
+          className="label-inputs"
+          style={{
+            width: "75%"
+          }}
+        ></input>
       </div>
       {editorMode === "editor" &&
         <div>
-          <div className="stat_division" >
+          <div className="stat-division"
+            style={statDivisionStyle}
+          >
             <label htmlFor="style">Style</label>
             <select defaultValue={defaultStyle}
               style={{ width: '75%' }}
@@ -110,30 +127,45 @@ const handleFontSizeChange = (val: number) : void => {
               <option value="Text">{"Text"}</option>
             </select>
             <label htmlFor="font_size">Font Size</label>
-            <input id="font_size" type="number"
-            defaultValue={fontSize}
-            style={{width:'25%'}} 
-            onBlur={(e) => handleFontSizeChange(e.target.valueAsNumber)}></input>
+            <input id="font_size"
+              type="number"
+              defaultValue={fontSize}
+              style={{ width: '25%' }}
+              onBlur={(e) => handleFontSizeChange(e.target.valueAsNumber)}
+            />
           </div>
-          <div className="stat_division" >
+          <div className="stat-division"
+            style={statDivisionStyle}
+          >
             <label htmlFor='color_select'>Color (rgba format)</label>
-            <input defaultValue={color} className="label_inputs" placeholder={"ex: rgba(0, 0, 0, 1)"} id='color_select' type="text" onBlur={(e) => handleColorChange(e.target.value)} />
+            <input defaultValue={color}
+              className="label_inputs"
+              placeholder={"ex: rgba(0, 0, 0, 1)"}
+              id='color_select'
+              type="text"
+              onBlur={(e) => handleColorChange(e.target.value)}
+            />
           </div>
         </div>
       }
       <div className="values_container" style={{ display: 'flex', flexDirection: 'row' }}>
-        <div className="stat_division">
+        <div className="stat-division"
+          style={statDivisionStyle}
+        >
           <label>Current</label>
-          <input className="label_inputs" 
-          defaultValue={defaultValInput && defaultValInput.current} 
-          onBlur={(e) => statStyle === "Text" ? setValue({ current: e.target.value }) : setValue({ ...value, current: e.target.value })}></input>
+          <input className="label_inputs"
+            defaultValue={defaultValInput && defaultValInput.current}
+            onBlur={(e) => statStyle === "Text" ? setValue({ current: e.target.value }) : setValue({ ...value, current: e.target.value })}
+          />
         </div>
         {(statStyle === "Pips" || statStyle === "Checkboxes") &&
-          <div className="stat_division">
+          <div className="stat-division"
+            style={statDivisionStyle}
+          >
             <label>Max</label>
-            <input className="label_inputs" 
-            defaultValue={defaultValInput && defaultValInput.max} 
-            onBlur={(e) => setValue({ ...value as StatValues, max: e.target.value })}></input>
+            <input className="label_inputs"
+              defaultValue={defaultValInput && defaultValInput.max}
+              onBlur={(e) => setValue({ ...value as StatValues, max: e.target.value })}></input>
           </div>
         }
       </div>
@@ -175,23 +207,23 @@ const CanvasEditor: React.FC<CanvasEditorProps> = ({ savedimageUri, savedSection
   useEffect(() => {
     setSections(savedSections)
     // if (typeof savedimageUri === "string") {
-      setImageUrl(savedimageUri)
+    setImageUrl(savedimageUri)
     // }
   }, [savedSections, savedimageUri])
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.preventDefault()
-    
+
     if (event.target.files && event.target.files[0].size <= 800000) {
-      const convertedFile : File = event.target.files[0]
+      const convertedFile: File = event.target.files[0]
       if (convertedFile) {
         const convertedImageUrl = URL.createObjectURL(convertedFile);
         setImageUrl(convertedImageUrl)
-        if (storeSections) { 
-          storeSections({ 
-            sections: sections, 
+        if (storeSections) {
+          storeSections({
+            sections: sections,
             image: convertedImageUrl
-          } as SheetData) 
+          } as SheetData)
         }
       }
     } else {
@@ -202,14 +234,14 @@ const CanvasEditor: React.FC<CanvasEditorProps> = ({ savedimageUri, savedSection
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault()
     const convertedFile = event.dataTransfer.items[0].getAsFile() as File
-    if(convertedFile.size <= 800000){
+    if (convertedFile.size <= 800000) {
       const convertedImageUrl = URL.createObjectURL(convertedFile);
       setImageUrl(convertedImageUrl)
       if (storeSections) { storeSections({ sections: sections, image: convertedFile } as SheetData) }
     } else {
       alert('Image is too big! please select a smaller image')
     }
-    
+
   }
 
   const handleDrag = (event: React.DragEvent<HTMLDivElement>): void => {
@@ -249,7 +281,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = ({ savedimageUri, savedSection
       setCanvasDataUrl((canvasRef.current as HTMLCanvasElement).toDataURL('image/jpeg', 1.0))
     }
   }, [imageUrl, editorMode, scale, sections])
-  
+
 
   useEffect(() => {
     const context: CanvasRenderingContext2D = canvasRef.current?.getContext('2d')!
@@ -333,10 +365,10 @@ const CanvasEditor: React.FC<CanvasEditorProps> = ({ savedimageUri, savedSection
   //     // newSections[label][key] as NestedSections = value;
   //   }
   // }
-  function assignAndRedraw<T>(label: keyof Sections, key: keyof NestedSections, value: T) : void{
-    if(sections && label) {
+  function assignAndRedraw<T>(label: keyof Sections, key: keyof NestedSections, value: T): void {
+    if (sections && label) {
       const context: CanvasRenderingContext2D = canvasRef.current?.getContext('2d')!;
-      const newSections : Sections = sections;
+      const newSections: Sections = sections;
       (newSections[label][key] as unknown) = value;
       setSections(newSections)
       redrawCanvas(imageUrl!, newSections as Sections, context, stageRef.current!.offsetWidth, stageRef.current!.offsetHeight, scale, editorMode)
@@ -351,7 +383,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = ({ savedimageUri, savedSection
     assignAndRedraw(label, 'showLabel', isShown)
   }
 
-  const assignFontSize =(label: Label, size: number) =>{
+  const assignFontSize = (label: Label, size: number) => {
     assignAndRedraw(label, 'fontSize', size)
   }
 
@@ -361,7 +393,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = ({ savedimageUri, savedSection
   }
 
   const assignValue = (values: StatValues, label: Label) => {
-    if(values){
+    if (values) {
       assignAndRedraw(label, 'value', values)
     }
   }
@@ -516,7 +548,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = ({ savedimageUri, savedSection
     margin: 2,
     border: '2px outset rgba(0, 92, 135)',
   }
-  
+
   return (
     <div style={{ display: 'flex', flexDirection: scale < 1 ? 'column' : 'row', minWidth: sheetWidth * 1.5 }}>
       <div style={{
@@ -526,7 +558,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = ({ savedimageUri, savedSection
         <label htmlFor="image_upload"
           style={{
             height: 20,
-            maxWidth:95
+            maxWidth: 95
           }}
         >
           <div style={{
@@ -536,12 +568,27 @@ const CanvasEditor: React.FC<CanvasEditorProps> = ({ savedimageUri, savedSection
             width: '85px',
             padding: '0px 3px 0px 3px'
           }}>Select Image</div>
-          <input id="image_upload" type="file" accept="image/*" onChange={(e) => handleFileChange(e)}></input>
+          <input
+          style={{
+            width:0,
+            height:0,
+            overflow:'hidden',
+            opacity:0,
+          }}
+            id="image_upload"
+            type="file"
+            accept="image/*"
+            onChange={(e) => handleFileChange(e)}>
+          </input>
         </label>
         {editorMode === "editor" &&
           <div key="button_container" id="button_container">
             <button className="toolButton"
-              style={mode === 'rectangle' ? selectedStyle : defaultButtonStyle}
+              style={{
+                borderRadius: 24,
+                border: 'none',
+                ...(mode === 'rectangle' ? selectedStyle : defaultButtonStyle)
+              }}
               value="rectangle"
               onClick={(e) => mode !== "rectangle" ? setMode((e.target as HTMLInputElement).value) : setMode('')}
               key="Rectangle">
@@ -583,23 +630,23 @@ const CanvasEditor: React.FC<CanvasEditorProps> = ({ savedimageUri, savedSection
         {editorMode !== 'creator' &&
           <div ref={inputContainer} id="labels" style={{ display: "flex", flexDirection: "column", width: 300 }}>
             {
-            sections !== undefined && Object.keys(sections).map((el, i) => <SelectionInputs
-              editorMode={editorMode!}
-              defaultColor={sections[el].fillcolor}
-              defaultStyle={sections[el].style}
-              defaultValInput={sections[el].value}
-              defaultLabel={Number(el) === i ? i : el}
-              defaultFontSize={sections[el].fontSize as number}
-              handleDelete={deleteStat}
-              handleValue={assignValue}
-              handleLabel={assignLabel}
-              handleStatStyle={assignStatStyle}
-              handleShowText={assignShowText}
-              handleColor={assignColor}
-              handleFontSize={assignFontSize}
-              index={i}
-              key={el} />)
-              }
+              sections !== undefined && Object.keys(sections).map((el, i) => <SelectionInputs
+                editorMode={editorMode!}
+                defaultColor={sections[el].fillcolor}
+                defaultStyle={sections[el].style}
+                defaultValInput={sections[el].value}
+                defaultLabel={Number(el) === i ? i : el}
+                defaultFontSize={sections[el].fontSize as number}
+                handleDelete={deleteStat}
+                handleValue={assignValue}
+                handleLabel={assignLabel}
+                handleStatStyle={assignStatStyle}
+                handleShowText={assignShowText}
+                handleColor={assignColor}
+                handleFontSize={assignFontSize}
+                index={i}
+                key={el} />)
+            }
           </div>
         }
       </div>
@@ -678,10 +725,29 @@ const CanvasEditor: React.FC<CanvasEditorProps> = ({ savedimageUri, savedSection
             />
           </span>
           <div className="canvas_stage" ref={stageRef} >
-            <canvas ref={canvasRef} style={{ margin: 0 }} onMouseUp={handleMouseUp} onMouseMove={(e) => handleMouseMove(e)} onMouseDown={(e) => cropHandler(e)} />
+            <canvas ref={canvasRef}
+              itemScope itemType='http://schema.org/CreativeWork'
+              style={{
+                margin: 0
+              }}
+              onMouseUp={handleMouseUp}
+              onMouseMove={(e) => handleMouseMove(e)}
+              onMouseDown={(e) => cropHandler(e)}
+
+            />
           </div>
         </div>
-        : <div id="dropzone" onDrop={(e) => handleDrop(e)} onDragOver={(e) => handleDrag(e)}>Drop File Here</div>
+        :
+        <div id="dropzone"
+          style={{
+            height: 200,
+            width: 200,
+            border: '2px dotted black'
+          }}
+          onDrop={(e) => handleDrop(e)}
+          onDragOver={(e) => handleDrag(e)}>
+          Drop File Here
+        </div>
       }
 
     </div>

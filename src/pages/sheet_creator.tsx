@@ -91,7 +91,6 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
                 if (token) {
                     let { data } = await staticQuery(getSystemsList, process.env.REACT_APP_HASURA_ENDPOINT as string, {
                         Authorization: `Bearer ${token}`
-                        // "X-Hasura-User-Id": userID as string
                     }, {}, 'GetSystemsList')
 
                     if (data) {
@@ -200,7 +199,9 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
             <div className="sheet_options"
                 style={isMobile ? mobile_sheet_options_style : sheet_options_style}>
                 {savedTemplate.sheet_url &&
-                    <img alt="blank character sheet preview"
+                    <img 
+                    alt={`blank ${savedTemplate.template} character sheet`}
+                    itemProp="image"
                         src={(savedTemplate.sheet_url as string)}
                         className="mini_sheet_preview"
                         style={{
@@ -276,7 +277,6 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
                                             }}
                                         >
                                             {
-                                                // savedTemplate.template === "Custom" ?
                                                 savedTemplate.template.includes("Custom") ?
                                                     val.map((stat, index) => <input
                                                         key={stat}
@@ -312,7 +312,6 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
                                                     `no_substats_container`
                                                     : ''}`}>
                                             {
-                                                // savedTemplate.template === "Custom" ?
                                                 Object.entries(val as WoDstatSection).map(([key2, val2]: [string, any], pos: number) =>
                                                     savedTemplate.template !== "Custom" ?
                                                         Array.isArray(val2) && val2.length > 0 ?

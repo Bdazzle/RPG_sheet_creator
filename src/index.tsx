@@ -8,6 +8,22 @@ import { setContext } from "@apollo/client/link/context";
 import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
 
 /*
+files that need to be changed for local testing:
+This - localhosts to rpgsheetcreator uris (for Auth0Provider redirect)
+firebase/config to test functions with firebase emulator
+*/
+
+/*THINGS TO ADD
+1) SEO
+2) make a key box for explainations of screens you aren't on, to the right of text, to make things look nicer,
+3) add additional input to upload a character image?
+
+Custom Sheets
+1) json stored on hasura
+2) images stored on firebase
+*/
+
+/*
 JWT token custom claims are accessible through Auth0 console -> Actions -> Flows -> Login -> hasura-claims
 */
 const AuthApolloProvider: React.FC = ({ children }) => {
@@ -53,20 +69,20 @@ const root = createRoot(container as HTMLElement);
 
 root.render(
   <React.StrictMode>
-    <Auth0Provider
+    {/* <Auth0Provider
       domain={process.env.REACT_APP_AUTH0_DOMAIN as string}
       clientId={"qzU5ssLKwmV6MhOmVTlqYtwPnFUIln29"}
-      redirectUri={`http://localhost:3000/`}//change this to live url before deploy
-      // redirectUri={`https://rpgsheetgenerator.web.app/`}
+      // redirectUri={`http://localhost:3000/`}//change this to live url before deploy
+      redirectUri={`https://rpgsheetgenerator.web.app/`}
       audience={"rpgsheetcreator"}
       useRefreshTokens={true}
-    >
+    > */}
       <AuthApolloProvider>
           <AppProvider >
             <App />
           </AppProvider >
       </AuthApolloProvider>
-    </Auth0Provider>
+    {/* </Auth0Provider> */}
   </React.StrictMode>
 )
 

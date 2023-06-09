@@ -20,10 +20,16 @@ export const SheetEditor: React.FC<Editor> = ({ setPath }) => {
                 style={{
                     marginBottom: 0
                 }}>
-                Editor
+                Custom Sheet Editor
             </h2>
             <div style={{ lineHeight: 1.5 }}>This is the Editor screen. <br />
                 It's used to edit your custom character sheet from images you upload.<br />
+                Select "Custom" from the <Link to={'/creator'} className="link_text"
+                    style={{
+                        color: theme.color,
+                        textDecoration: 'underline'
+                    }}
+                >Creator</Link> "System" dropdown menu to make a sheet.<br />
                 The <Link to={'/creator'} className="link_text"
                     style={{
                         color: theme.color,
