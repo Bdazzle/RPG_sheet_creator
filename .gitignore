@@ -13,8 +13,19 @@
 # production
 /build
 
+# next.js
+/.next/
+/out/
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+
 # misc
 .DS_Store
+*.pem
 .env
 .env.local
 .env.development.local

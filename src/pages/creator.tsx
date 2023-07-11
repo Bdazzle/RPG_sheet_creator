@@ -1,6 +1,5 @@
 import React, { CSSProperties, useContext, useEffect, useState } from 'react';
-import { useLocation, Link } from "react-router-dom"
-import { SheetData, SheetStats, WoDstatSection } from '../types/RPGtypes.d.js'
+import { CustomSheetData, SheetData, SheetStats, WoDstatSection } from '../types/RPGtypes.js'
 import { DropDownMenu } from '../components/dropdownmenu';
 import { AppContext } from '../AppContext';
 import { staticQuery } from '../graphql/queryHooks';
@@ -59,11 +58,6 @@ export const makeSheetObj = (statblock: any, objToAssign: object): object => {
     return objToAssign
 }
 
-export interface CreatorProps {
-    setPath: (path: string) => void
-    savedTemplate: SheetData
-}
-
 const sheet_options_style: CSSProperties = {
     position: 'relative'
 }
@@ -74,16 +68,11 @@ const mobile_sheet_options_style: CSSProperties = {
     flexDirection: 'column',
 }
 
-export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate }) => {
+const SheetCreator: React.FC = ({ }) => {
     const [templatesOptions, setTemplatesOptions] = useState<string[]>([]) //different sheets from each game system
     const { theme, isMobile, token, setCharacter, character, userID, saveTemplate, saveCharacterStat, replaceStat } = useContext(AppContext)
     const [systems, setSystems] = useState<string[]>([])
     const [gameData, setGameData] = useState<SheetData>()
-    let location = useLocation()
-
-    useEffect(() => {
-        setPath(location.pathname)
-    })
 
     useEffect(() => {
         const systemList = async () => {
@@ -116,11 +105,11 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
     */
     useEffect(() => {
         const gamesList = async () => {
-            if (savedTemplate) {
+            if ((character.templateData as SheetData | CustomSheetData).system) {
                 let { data } = await staticQuery(getGamesList, process.env.REACT_APP_HASURA_ENDPOINT as string, {
                     Authorization: `Bearer ${token}`
                 }, {
-                    system: savedTemplate.system
+                    system: (character.templateData as SheetData | CustomSheetData).system
                 }, 'GetGamesList')
                 if (data) {
                     // setTemplatesOptions(["Custom", ...data.templates_games.map((game: { game_name: String }) => game.game_name)])
@@ -130,7 +119,7 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
             }
         }
         gamesList()
-    }, [savedTemplate.system])
+    }, [(character.templateData as SheetData | CustomSheetData).system])
 
 
     const systemChange = (systemOption: string) => {
@@ -165,7 +154,7 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
         }, {
             game_name: val
         }, 'GetGameSheet')
-        const updatedSheetdata: SheetData = { ...savedTemplate, ...data.templates_game_sheets[0], template: val }
+        const updatedSheetdata: SheetData = { ...(character.templateData as SheetData | CustomSheetData), ...data.templates_game_sheets[0], template: val }
         const newCharacterSheet = makeSheetObj(data.templates_game_sheets[0].stat_block, {})
         saveCharacterStat(newCharacterSheet)
         setGameData(updatedSheetdata)
@@ -174,35 +163,13 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
 
     return (
         <div style={{ width: '90vw', lineHeight: 1.5 }}>
-            <h2 className='page_route_text'
-                style={{
-                    marginBottom: 0
-                }}>
-                Creator
-            </h2>
-            <div style={{ lineHeight: 1.5 }}>This is the Creator screen. <br />
-                It's used to make selections for creating your own RPG character sheet or use a pre-existing character sheet template. <br />
-
-                The <Link to={'/editor'} className="link_text"
-                    style={{
-                        color: theme.color,
-                        textDecoration: 'underline'
-                    }}
-                >Editor</Link> screen is used to edit your custom character sheet from images you upload. <br />
-                The <Link to={'/sheet'} className="link_text"
-                    style={{
-                        color: theme.color,
-                        textDecoration: 'underline'
-                    }}
-                >Sheet</Link> screen is used to make changes to your character as you play.</div>
-
             <div className="sheet_options"
                 style={isMobile ? mobile_sheet_options_style : sheet_options_style}>
-                {savedTemplate.sheet_url &&
-                    <img 
-                    alt={`blank ${savedTemplate.template} character sheet`}
-                    itemProp="image"
-                        src={(savedTemplate.sheet_url as string)}
+                {(character.templateData as SheetData).sheet_url &&
+                    <img
+                        alt={`blank ${(character.templateData as SheetData).template} character sheet`}
+                        itemProp="image"
+                        src={((character.templateData as SheetData).sheet_url as string)}
                         className="mini_sheet_preview"
                         style={{
                             width: '150px',
@@ -218,7 +185,7 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
                         className={`System`}
                         changeFunction={systemChange}
                         labelText={`System (Custom to create your own)`}
-                        defaultValue={savedTemplate.system ? savedTemplate.system as string : "--Choose a System--"}
+                        defaultValue={(character.templateData as SheetData | CustomSheetData).system ? (character.templateData as SheetData | CustomSheetData).system as string : "--Choose a System--"}
                         style={{
                             zIndex: 9,
                             display: 'flex',
@@ -236,7 +203,7 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
                             className={`Game`}
                             changeFunction={handleGameChange}
                             labelText={`Game`}
-                            defaultValue={savedTemplate ? savedTemplate!.template as string : "--Choose a Game--"}
+                            defaultValue={(character.templateData as SheetData | CustomSheetData) ? (character.templateData as SheetData)!.template as string : "--Choose a Game--"}
                             style={{
                                 zIndex: 8,
                                 display: 'flex',
@@ -252,14 +219,14 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
                         <div></div>
                     }
 
-                    {savedTemplate.system === "World of Darkness 5th Edition" ?
+                    {(character.templateData as SheetData | CustomSheetData).system === "World of Darkness 5th Edition" ?
                         <div className="template_stats" style={{
                             width: '100vw',
                             maxWidth: '672px',
                             display: 'flex',
                             flexDirection: 'column',
                         }}>
-                            {savedTemplate.stat_block ? Object.entries(savedTemplate.stat_block as SheetStats).map(([key, val]) =>
+                            {(character.templateData as SheetData).stat_block ? Object.entries((character.templateData as SheetData).stat_block as SheetStats).map(([key, val]) =>
                                 Array.isArray(val) ?
                                     <div key={key}>
                                         <div key={`${key}_stat_title`} className="stat_title"
@@ -277,7 +244,7 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
                                             }}
                                         >
                                             {
-                                                savedTemplate.template.includes("Custom") ?
+                                                (character.templateData as SheetData).template.includes("Custom") ?
                                                     val.map((stat, index) => <input
                                                         key={stat}
                                                         defaultValue={stat}
@@ -291,10 +258,10 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
                             ) : ''
                             }
                         </div> :
-                        savedTemplate.system === "World of Darkness" &&
+                        (character.templateData as SheetData | CustomSheetData).system === "World of Darkness" &&
                         <div className="template_stats" >
                             {
-                                savedTemplate!.stat_block && Object.entries(savedTemplate!.stat_block).map(([key, val]: [string, WoDstatSection]) =>
+                                (character.templateData as SheetData)!.stat_block && Object.entries((character.templateData as SheetData)!.stat_block).map(([key, val]: [string, WoDstatSection]) =>
                                     <div key={key}>
                                         <div key={`${key}_stat_title`} className="stat_title" id={`${key}_stat_title`}
                                             style={{
@@ -313,7 +280,7 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
                                                     : ''}`}>
                                             {
                                                 Object.entries(val as WoDstatSection).map(([key2, val2]: [string, any], pos: number) =>
-                                                    savedTemplate.template !== "Custom" ?
+                                                    (character.templateData as SheetData).template !== "Custom" ?
                                                         Array.isArray(val2) && val2.length > 0 ?
                                                             <div key={key2 + val2}>
                                                                 <div key={key2} className="substat_title" style={{
@@ -359,3 +326,5 @@ export const SheetCreator: React.FC<CreatorProps> = ({ setPath, savedTemplate })
         </div >
     )
 }
+
+export default SheetCreator

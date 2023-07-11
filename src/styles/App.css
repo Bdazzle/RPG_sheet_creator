@@ -1,6 +1,10 @@
+@import './boxes.css';
+@import "./button.css";
+@import "./dropdownmenu.css";
+
 @font-face {
   font-family: Werewolf;
-  src: url('./World of Darkness/WEREWOLF.TTF');
+  src: url('WEREWOLF.TTF');
 }
 
 .main_container {
@@ -27,7 +31,7 @@ body {
 
 .pink {
   border: 1mm ridge pink;
-  background: no-repeat center/90% url('./Icons/pink.png');
+  background: no-repeat center/90% url('../Icons/pink.png');
 }
 
 .pink:hover {
@@ -41,7 +45,7 @@ body {
 }
 
 .light {
-  background: no-repeat center/90% url('./Icons/light.png');
+  background: no-repeat center/90% url('../Icons/light.png');
 }
 
 .light:hover {
@@ -55,7 +59,7 @@ body {
 }
 
 .dark {
-  background: no-repeat center/90% url('./Icons/dark.png');
+  background: no-repeat center/90% url('../Icons/dark.png');
 }
 
 .dark:hover {

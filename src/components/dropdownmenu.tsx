@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext, CSSProperties } from "react"
 import { AppContext } from '../AppContext'
-import './dropdownmenu.css'
+// import './dropdownmenu.css'
 
 interface DropMenu {
     inputList: string[];

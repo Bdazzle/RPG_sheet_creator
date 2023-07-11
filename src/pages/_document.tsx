@@ -1,0 +1,34 @@
+import { Html, Head, Main, NextScript } from 'next/document'
+
+export default function Document() {
+    
+    return (
+        <Html lang='en'>
+            <Head>
+                <meta charSet="utf-8" />
+                <link rel="preconnect" href="https://fonts.gstatic.com" />
+                <script src="https://kit.fontawesome.com/690a90fc4b.js" crossOrigin="anonymous"></script>
+                <link href="https://fonts.googleapis.com/css2?family=Cormorant&family=Open+Sans&family=Bodoni+Moda:ital@0;1&display=swap" rel="stylesheet" />
+                <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+                <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto" />
+                <link rel="icon" href="rpgsheetfavicon.ico" />
+                <link rel="shortcut icon" href="rpgsheetfavicon.ico" />
+                <link rel="img_src" href="rpgsheetfavicon.png" />
+                {/* <meta name="viewport" content="width=device-width, initial-scale=1" /> */}
+                <meta name="theme-color" content="#000000" />
+                <meta name="description" content="Web App for creating, editing, and sharing custom (and some proloaded) RPG sheet overlays." />
+                <meta name="author" content="Brian Robinson" />
+                <meta name="keywords" content="Role Playing Games, RPGS, character sheet, custom character sheet, image editor, RPG editor, character sheet creator, character sheet editor" />
+                <meta property="og:image" content="rpgsheetfavicon.png" />
+                <meta property="og:title" content="RPG Sheet Generator" />
+                <meta property="og:url" content="https://rpgsheetgenerator.web.app/" />
+                <meta property="og:locale" content="en_US" />
+            </Head>
+            <title>RPG Sheet Generator</title>
+            <body >
+                    <Main />
+                    <NextScript />
+            </body>
+        </Html>
+    )
+}

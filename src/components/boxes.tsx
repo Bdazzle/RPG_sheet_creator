@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './boxes.css'
+// import './boxes.css'
 /* 
 Requires CSS attached to classes so that if a box/pip w/value > or < styles can be removed for any pip in that range.
 so can't use inline styles?

@@ -1,12 +1,14 @@
 import React, { useContext, useCallback, useState, useMemo, CSSProperties, useEffect, useRef } from 'react';
-import './App.css';
+import './styles/App.css';
 import { ShareModal } from './components/modals/sharemodal';
 import { Navbar } from './components/navbar/navheader';
-import { SheetCreator } from "./pages/sheet_creator"
-import { SheetScreen } from "./pages/sheetScreen"
-import { BrowserRouter as Router, Link, Route } from "react-router-dom";
+import SheetCreator from "./pages/creator"
+import SheetScreen from "./pages/sheet"
+// import { BrowserRouter as Router, Link, Route } from "react-router-dom";
+// import { Routes } from 'react-router';
+import Link from 'next/link'
 import CanvasEditor from "./CanvasEditor/CanvasEditor"
-import { SheetEditor } from "./pages/sheet_editor"
+import SheetEditor from "./pages/editor"
 import { Sections, SheetData, CharacterData, CustomSheetData, SheetTypes } from './types/RPGtypes.d.js'
 import { AppContext } from './AppContext';
 import { IconedButton } from './components/IconedButton';
@@ -15,9 +17,9 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useMutation } from '@apollo/client';
 import { insertShares, insertUser } from './graphql/mutations';
 import { staticQuery } from './graphql/queryHooks';
-import { Routes } from 'react-router';
 import { getExistingUser } from './graphql/queries';
 import { auth } from './firebase/config';
+import { useRouter } from 'next/dist/client/router';
 
 const headerStyle: CSSProperties = {
   display: 'flex',
@@ -40,7 +42,8 @@ App Login/Save flow:
 3)getCustomSheets, getsharedCustomSheets, getCharacterList
 */
 export const App: React.FC = () => {
-  const [currentPath, setCurrentPath] = useState<string>()
+  const router = useRouter()
+  // const [currentPath, setCurrentPath] = useState<string>()
   const [scale, setScale] = useState<number>()
   const [showSharingModal, setshowSharingModal] = useState<boolean>(false)
   const { theme, dispatchTheme, isMobile, setIsMobile, character, setCharacter, userID, setUserID,
@@ -107,7 +110,7 @@ remove this useEffect, make normal function so that it doesn't trigger when sign
   }, [character])
 
   const saveCurrentPath = useCallback((path: string) => {
-    setCurrentPath(path.substring(1))
+    // setCurrentPath(path.substring(1))
     const newScale = path.substring(1) === 'creator' ? .5 : 1
     setScale(newScale)
   }, [])
@@ -207,13 +210,13 @@ remove this useEffect, make normal function so that it doesn't trigger when sign
         </div>
       }
       <div className="main_container">
-        <Router >
+        {/* <Router > */}
           <div className="creator_link_container" style={
             isMobile ? mobileHeaderStyle : headerStyle
           }>
-            <Link to={currentPath === 'creator' ? "sheet"
-              : currentPath === 'editor' ? "sheet"
-                : "creator"}
+            <Link href={router.pathname === 'creator' ? "/sheet"
+              : router.pathname === 'editor' ? "/sheet"
+                : "/creator"}
               className="navigation_button">
               <IconedButton
                 style={{
@@ -240,8 +243,8 @@ remove this useEffect, make normal function so that it doesn't trigger when sign
                   width: 16,
                   height: 16
                 }}
-                text={currentPath === 'creator' ? "Sheet"
-                  : currentPath === 'editor' ? "Sheet"
+                text={router.pathname === 'creator' ? "Sheet"
+                  : router.pathname === 'editor' ? "Sheet"
                     : "Creator"}
                 viewBox="0 0 512 512"
                 paths={["M500.5 231.4l-192-160C287.9 54.3 256 68.6 256 96v320c0 27.4 31.9 41.8 52.5 24.6l192-160c15.3-12.8 15.3-36.4 0-49.2zm-256 0l-192-160C31.9 54.3 0 68.6 0 96v320c0 27.4 31.9 41.8 52.5 24.6l192-160c15.3-12.8 15.3-36.4 0-49.2z"]}
@@ -258,9 +261,9 @@ remove this useEffect, make normal function so that it doesn't trigger when sign
               fontWeight: 'normal',
               fontSize: isMobile ? '24px' : '36px',
             }}>RPG sheet creator</h1>
-            <Link to={currentPath === 'creator' ? "editor" :
-              currentPath === 'editor' ? "creator"
-                : "editor"
+            <Link href={router.pathname === 'creator' ? "/editor" :
+              router.pathname === 'editor' ? "/creator"
+                : "/editor"
             }
               className="navigation_button">
               <IconedButton
@@ -288,15 +291,15 @@ remove this useEffect, make normal function so that it doesn't trigger when sign
                   width: 16,
                   height: 16
                 }}
-                text={currentPath === 'creator' ? "Editor" :
-                  currentPath === 'editor' ? "Creator"
+                text={router.pathname === 'creator' ? "Editor" :
+                router.pathname === 'editor' ? "Creator"
                     : "Editor"}
                 viewBox="0 0 512 512"
                 paths={["M500.5 231.4l-192-160C287.9 54.3 256 68.6 256 96v320c0 27.4 31.9 41.8 52.5 24.6l192-160c15.3-12.8 15.3-36.4 0-49.2zm-256 0l-192-160C31.9 54.3 0 68.6 0 96v320c0 27.4 31.9 41.8 52.5 24.6l192-160c15.3-12.8 15.3-36.4 0-49.2z"]}
               />
             </Link>
           </div>
-          <Routes>
+          {/* <Routes>
             <Route path="/creator" element={
               <SheetCreator
                 setPath={saveCurrentPath}
@@ -323,7 +326,7 @@ remove this useEffect, make normal function so that it doesn't trigger when sign
               />
             }>
             </Route>
-          </Routes>
+          </Routes> */}
           <div>
           {(character.templateData as SheetData | CustomSheetData).system === "Custom" &&
         <>
@@ -331,7 +334,7 @@ remove this useEffect, make normal function so that it doesn't trigger when sign
           <input ref={nameref} id='character_name' style={{ width: '25%' }} onChange={(e) => addCharacterName(e.target.value)}></input>
         </>
       }
-            {(character.templateData as CustomSheetData).system === "Custom" && currentPath !== 'sheet' &&
+            {(character.templateData as CustomSheetData).system === "Custom" && router.pathname !== 'sheet' &&
               <div style={{ paddingTop: 5, paddingBottom: 5 }}>
                 <label>System Name: </label>
                 { (character.templateData as CustomSheetData).creatorID === userID ?
@@ -354,7 +357,7 @@ remove this useEffect, make normal function so that it doesn't trigger when sign
               </div>
             }
           </div>
-        </Router>
+        {/* </Router> */}
         {
           showSharingModal === true && 
           <ShareModal 
@@ -372,7 +375,7 @@ remove this useEffect, make normal function so that it doesn't trigger when sign
             savedSections={character.characterInfo && character.characterInfo.sections as Sections}
             storeSections={saveTemplate}
             scale={scale}
-            editorMode={currentPath}
+            editorMode={router.pathname}
             system_name={(character.templateData as CustomSheetData).system_name as string}
           />
         }

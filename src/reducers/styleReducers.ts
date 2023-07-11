@@ -30,24 +30,30 @@ export const templateStyleReducer = (state: { [key: string]: CSSProperties }, ac
           scheme: 'light',
           scrollColor: `rgb(145, 145, 145)`,
           navColor: `rgb(244,244,244)`,
+          keyColor: `rgb(74, 74, 74)`,
+          keyBorder:``
         };
       case "dark":
         return {
           backgroundColor: `rgb(24,24,24)`,
+          // backgroundColor:`rgb(74, 74, 74)`,
           color: `#ffffff`,
           backgroundImage: `none`,
           scheme: 'dark',
           scrollColor: `#ffffff`,
-          navColor: `#454545`
+          navColor: `#454545`,
+          keyColor: `#ffffff`,
+          keyBorder:``
         };
       case "pink":
         return {
           backgroundColor: `rgb(237,225,243)`,
           color: `#ff5858`,
-          backgroundImage: rainbow,
+          backgroundImage: rainbow.src,
           scheme: 'pink',
           scrollColor: `#FFC3F5`,
-          navColor: `rgb(244,203,237)`
+          navColor: `rgb(244,203,237)`,
+          keyColor: `rgb(59, 229, 245)`
         };
       default:
         return state;

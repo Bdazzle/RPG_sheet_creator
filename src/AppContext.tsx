@@ -39,8 +39,9 @@ export const AppProvider: React.FC = ({ children }) => {
     backgroundColor: `#ffffff`,
     color: `#000000`,
     backgroundImage: `none`,
-    scheme: 'light',
-    scrollColor: `rgb(145, 145, 145)`
+    scrollColor: `rgb(145, 145, 145)`,
+    navColor: `rgb(244,244,244)`,
+    keyColor: `rgb(74, 74, 74)`,
   })
   const [isMobile, setIsMobile] = useState<boolean>(false)
   const [character, setCharacter] = useState<CharacterData<SheetData | CustomSheetData | {}, any>>({
@@ -55,10 +56,10 @@ export const AppProvider: React.FC = ({ children }) => {
   const [token, setToken] = useState<string | void>()
   const [signedInWithGoogle, setSignedInWithGoogle] = useState<boolean>(false)
   // const [googleData, setGoogleData] = useState<UsedGoogleData | {}>({})
-  
+
   // useEffect(() =>{
   //   if(token && userID){
-      
+
   //     // const googleValidation = async() =>{
   //     //   try{
   //     //     // const authUser = await auth.signInWithEmailAndPassword(userID, 'dummyPassword');
@@ -67,14 +68,14 @@ export const AppProvider: React.FC = ({ children }) => {
   //     //     console.log('error', e)
   //     //   }
   //     //   // const googleToken = getAuth().createCustomToken
-        
+
   //     // }
   //     // googleValidation()
-      
+
   //   //   signInWithCustomToken(auth, token).then(userCredentials => console.log('google creds', userCredentials))
   //   // console.log('auth0 token', jwt_decode(token))
   //   }
-    
+
   // },[token])
 
   useEffect(() => {
@@ -102,15 +103,15 @@ export const AppProvider: React.FC = ({ children }) => {
   */
   const replaceStat = (newVal: string, position: number, statType: keyof SheetStats) => {
     const newStatArray = ((character.templateData as SheetData).stat_block as SheetStats)[statType].map((oldVal, i) => i === position ? newVal : oldVal)
-    
+
     setCharacter({
       ...character,
-      characterInfo:{
+      characterInfo: {
         ...character.characterInfo,
-        [statType] : newStatArray.reduce<{ [key: string]: any }>((obj, key) =>{
+        [statType]: newStatArray.reduce<{ [key: string]: any }>((obj, key) => {
           obj[key] = character.characterInfo[statType][key] ? character.characterInfo[statType][key] : null
           return obj
-        },{})
+        }, {})
       },
       templateData: {
         ...character.templateData,
@@ -118,8 +119,8 @@ export const AppProvider: React.FC = ({ children }) => {
       }
     })
   }
-  
-// console.log('chracter', character)
+
+  // console.log('chracter', character)
   return <AppContext.Provider value={{
     // googleData: googleData,
     // setGoogleData: setGoogleData,

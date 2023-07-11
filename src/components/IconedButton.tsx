@@ -4,11 +4,11 @@ interface ButtonProps {
     style: CSSProperties;
     text: string;
     paths?: string[];
-    children?:[React.SVGAttributes<SVGGElement>]
+    children?: [React.SVGAttributes<SVGGElement>]
     viewBox: string;
     svgDimensions: {
-        width:number,
-        height:number,
+        width: number,
+        height: number,
     }
     hoverStyle?: CSSProperties;
     onClick?: () => void;
@@ -18,7 +18,7 @@ export const IconedButton: React.FC<ButtonProps> = ({ style, text, paths, childr
     const [hovering, setHovering] = useState<boolean>(false)
 
     return (
-        <div className="iconed_button"
+        <div className="iconed-button"
             onMouseDown={() => {
                 onClick && onClick();
                 setHovering(false)
@@ -27,14 +27,30 @@ export const IconedButton: React.FC<ButtonProps> = ({ style, text, paths, childr
             onMouseOut={() => setHovering(false)}
             style={hovering ? hoverStyle : style}
         >
-            <div>{text}</div>
-            <svg id="share_icon" viewBox={viewBox} height={svgDimensions.height} width={svgDimensions.width}>
-                {
-                paths ? paths.map((p, i) => <path key={`${text}${i}`} fill={hovering ? hoverStyle?.color : style.color} d={p}></path>) 
-                :
-                children
-                }
-            </svg>
+            <button style={{
+                display: 'flex',
+                width: '100%',
+                justifyContent: 'space-between',
+                alignItems:'center',
+                cursor:"pointer",
+                backgroundColor: style.backgroundColor,
+                color: style.color,
+                fontSize: style.fontSize,
+                borderRadius: style.borderRadius
+            }}>
+                {text}
+                <svg id="share_icon" viewBox={viewBox} height={svgDimensions.height} width={svgDimensions.width}>
+                    {
+                        paths ? paths.map((p, i) => <path
+                            key={`${text}${i}`}
+                            fill={hovering ? hoverStyle?.color : style.color}
+                            d={p}>
+                        </path>)
+                            :
+                            children
+                    }
+                </svg>
+            </button>
         </div>
     )
 }
